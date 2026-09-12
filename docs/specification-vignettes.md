@@ -247,6 +247,12 @@ et beaucoup de volume » demandé. Le choix se fait **par famille**, pas
 globalement, et il **brûle l'épure** (216 de moyenne, 17 % de tons moyens) : pour
 elle, l'adopter obligerait à baisser l'albédo (CANON 1.20). Voir §9.
 
+⭐ **Éclairage par défaut du cas générique, arbitré le 12-09-2026 : la face.**
+Choisi à l'œil contre le liseré sur le buste de test, pour un dispositif
+portrait/blueprint à azimut proche de 0. **Ne tranche pas l'arbitrage
+ci-dessus** ni le choix par famille : sur un profil marqué (azimut ≥ 70°) ou
+sur une épure, la question reste ouverte telle que décrite plus haut.
+
 ---
 
 ## 4. Les matières
@@ -375,8 +381,20 @@ vignette oppose deux **traitements** au lieu de deux maillages (CANON 1.9).
 | **70°** | « la silhouette » et « le gros plan », trois-quarts de profil. Éclairage **liseré** |
 | **90°** | profil strict |
 
-⚠ L'azimut ne se montre que dans **un seul sens**, de −25° à +90° : un demi-tour
-suffit à donner l'échelle, et les vignettes existantes vivent dans cette plage.
+⭐ **Valeur par défaut du cas générique, arbitrée le 12-09-2026 : azimut −25°,
+éclairage face.** Vérifiée à l'œil sur une cible de visage (`nose-base-down`) :
+à −25° le personnage regarde vers la **gauche** de l'image, presque de face ;
+à −45° le trois-quarts est net, le regard se lit sans ambiguïté vers la
+gauche. Choisie pour équilibrer des icônes qui, ailleurs, regardent
+généralement vers la droite. **Elle ne remplace pas la table ci-dessus** :
+c'est le réglage à prendre quand aucune des lignes du tableau (ou la règle du
+§6) ne s'applique mieux au cas en cours. Elle ne s'étend pas au `macro`, à la
+**carte**, ni à un cadrage serré, pour lesquels l'avertissement suivant reste
+entier.
+
+⚠ L'azimut ne se montre que dans **un seul sens**, de −25° à +90° (ou son
+image miroir côté gauche) : un demi-tour suffit à donner l'échelle, et les
+vignettes existantes vivent dans cette plage.
 
 ⚠ **L'azimut n'a pas de sens** sur un `macro` et sur les paliers serrés en général :
 à cette échelle c'est le choix du côté (`--one-side`, `--far-side`) qui décide de
