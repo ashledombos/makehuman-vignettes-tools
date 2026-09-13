@@ -1,8 +1,17 @@
 # Spécification des vignettes MakeHuman / MPFB2
 
-*Table de décision, arrêtée le 12-09-2026. Elle remplace le tâtonnement : pour
-tout besoin de vignette, elle donne le dispositif, l'éclairage, le cadrage et
-l'azimut sans interprétation.*
+*Table de décision, arrêtée le 12-09-2026, mise à jour le 13-09-2026. Elle
+remplace le tâtonnement : pour tout besoin de vignette, elle donne le
+dispositif, l'éclairage, le cadrage et l'azimut sans interprétation.*
+
+⚠⚠ **Pour les PROXIES (maillages de corps de remplacement), le §2.7 et le
+CANON section 1.23 priment sur ce qui les contredit dans les sections
+suivantes.** Le 13-09-2026 a tranché le décor (fond noir, corps porcelaine),
+la couleur (encre bleue plutôt qu'orange), le sens de l'azimut, et remplacé le
+classificateur à sept règles du §6.2 par un classement à trois régimes mesuré
+sur trois nombres. `rendermeshthumbs.py` est désormais versionné dans ce
+dépôt (§8, §9.1 résolu). Ce qui suit sur les **cibles** (curseurs) n'a pas
+changé.
 
 Ce document **ne rejoue pas** les mesures. Chaque choix renvoie à la section du
 CANON (`~/dev/admin/makehuman-vignettes-CANON.md`) qui le paie d'un chiffre.
@@ -38,20 +47,31 @@ demander **à quoi elle sert ici**, pas seulement d'où elle vient.
 | famille | sujet | moteur | ce qu'on montre |
 |---|---|---|---|
 | **cibles** (curseurs MPFB) | une déformation continue | `bin/rendertargetthumbs.py` | les deux bouts du curseur |
-| **assets** (proxies, maillages) | un maillage de rechange | `rendermeshthumbs.py` (⚠ §8) | la topologie ou l'écart au corps |
+| **assets** (proxies, maillages) | un maillage de rechange | `rendermeshthumbs.py`, versionné dans `bin/` depuis le 13-09 | la topologie ou l'écart au corps |
 
 ⚠ Les deux familles sortent du **même studio** depuis le 06-09 : même gris, même
 liseré, même fond transparent, même taille. L'écart de teinte entre vignettes est
 tombé de 89,0 à 49,4 et l'exposition du sujet de 172,6 à 122,3, soit la bande des
 cibles qui tournent à 135 (CANON 1.12). L'homogénéité du catalogue ne se plaide
-plus, elle se chiffre.
+plus, elle se chiffre. ⚠ Ce constat vaut pour les **cibles**, sur fond
+transparent ; les **proxies** ont depuis basculé sur un fond et un corps
+différents, §2.7.
 
-⚠⚠ **Le fond est transparent et le thème de l'usager est inconnu.** Les 41
-vignettes réelles du catalogue sont transparentes sans exception, et Blender
-livre deux thèmes (panneau sombre à 48/255, panneau clair de `#999999` à
-`#dbdbdb`). Toute vignette se juge donc sur **les deux fonds**, jamais aplatie
-sur blanc. Aucune valeur de corps ne survit aux deux : question ouverte, laissée
-au propriétaire du pack (CANON 1.17, 1.18).
+⚠⚠ **Le fond est transparent et le thème de l'usager est inconnu** — vrai pour
+les **cibles**. Les 41 vignettes réelles du catalogue sont transparentes sans
+exception, et Blender livre deux thèmes (panneau sombre à 48/255, panneau clair
+de `#999999` à `#dbdbdb`). Toute vignette de cible se juge donc sur **les deux
+fonds**, jamais aplatie sur blanc. Aucune valeur de corps ne survit aux deux :
+question ouverte pour les cibles, laissée au propriétaire du pack (CANON 1.17,
+1.18). ⛔ **Pour les proxies, la question est tranchée le 13-09** : fond **noir
+opaque**, qui supprime le problème par construction. Voir §2.7 et CANON 1.23.
+
+⚠⚠ **Le sens de l'azimut est inversé entre les deux scripts.** Sur
+`rendertargetthumbs.py` (cibles), un azimut **négatif** fait regarder à
+gauche. Sur `rendermeshthumbs.py` (assets), c'est l'inverse : un azimut
+**positif** fait regarder à gauche, vérifié à l'œil sur six valeurs le 13-09.
+Ne jamais recopier une valeur d'azimut d'un script à l'autre sans revérifier
+le sens sur l'image (CANON 1.23, §5.4).
 
 ---
 
@@ -213,6 +233,58 @@ Une seule image, rien d'ajouté.
   10,4, sirène 8,2, épures 3,3, diptyque 2,7 ; **seuil à 6,0**, au-dessus duquel on
   n'applique pas le liseré (CANON 1.17).
 
+### 2.7 ⭐⭐⭐ Le régime unifié des proxies — arrêté le 13-09-2026
+
+*Ceci remplace, pour les **proxies** (maillages de corps de remplacement), le
+choix de dispositif du §6.2/6.3 et le décor décrit aux sections 2.3 à 2.6.
+Détail complet, mesures et planches : CANON section 1.23,
+`makehuman-planches-2026-09-13/`. Le diptyque (2.3) et le portrait (2.6)
+restent le vocabulaire pour ce que ce classement ne couvre pas (un accessoire
+isolé, une pièce hors mesh de corps) : ils ne sont pas retirés, seulement
+non pilotés par la règle ci-dessous.*
+
+**Le décor commun**, recette exécutable `bin/proxies-v2.sh` :
+
+| réglage | valeur | pourquoi |
+|---|---|---|
+| fond | **noir opaque** | supprime le risque de contraste inversé selon le thème (§1) |
+| corps | `--albedo 0.92`, dit « porcelaine » | 216/255, zéro pixel brûlé |
+| exposition | `--exposure 0.7` | corps et écart de lisibilité montent ensemble |
+| éclairage | **la face**, monde 0,55 | bat le liseré sur fond noir, corps 198 contre 158 |
+| azimut | **+34°** | symétrique du −34° figé de l'ancien studio, sens vérifié à l'œil |
+| trait | `--true-edges` (vraies arêtes) | ⚠⚠ sans lui `--wire` retombe sur le nœud Wireframe, qui **triangule les quads** |
+| couleur | **encre bleue** `(0.04, 0.12, 0.50)` | une seule couleur pour tout ce qui parle du maillage ; passe les trois daltonismes, contrairement à l'orange (CANON 1.23) |
+
+**Le classement**, par `bin/proxies-v2.sh <pack> mesurer` (option
+`--measure-only`, qui imprime pour chaque asset `neufs` / `grappes` /
+`étendue`) :
+
+| régime | critère | dispositif | mode du script |
+|---|---|---|---|
+| **global** | neufs > 90 % du maillage | épure, tout le maillage en bleu, `--top 0.20` | `global` |
+| **local** | étendue des sommets neufs < 35 % de la hauteur | épure **bicolore** : gris clair 0,85 partout, bleu sur la seule zone, zoom | `local` |
+| **dispersé** | ni l'un ni l'autre | carte : la zone en aplat du même bleu, cadre sur son enveloppe | `disperse` |
+
+⚠ **Un proxy partiel passe avant ce classement.** Un proxy qui **retire** de
+la géométrie (une tête seule, un torse) fait ressortir son **bord de coupe**
+comme « neuf », pas son propos : à traiter par exception avant de lire le
+régime (CANON 1.10, 1.23).
+
+⚠⚠ « neufs » désigne les sommets du proxy qui ne coïncident avec **aucun**
+sommet du maillage de base (au dixième d'arête près) : c'est une définition
+**topologique**, pas géométrique. Deux définitions géométriques ont été
+essayées pour la même question et ont échoué (densité rapportée à la base,
+écart de forme par percentile) : voir CANON 1.23, tableau « ce qui a échoué ».
+
+**Correspondance avec le vocabulaire des sections précédentes** : le régime
+*global* est une épure (2.4) avec ce nouveau décor ; le régime *dispersé* est
+une carte (2.5) avec ce nouveau décor et cette nouvelle définition de zone ;
+le régime *local* est un dispositif **nouveau**, une épure zoomée et
+bicolore, sans équivalent antérieur dans ce document.
+
+Appliqué aux 29 proxies des deux paquets CC0/CC-BY : **4 globaux, 11 locaux,
+13 dispersés**.
+
 ---
 
 ## 3. Les éclairages
@@ -240,18 +312,27 @@ lumière en plus, le décile du contour gagne 3 points là où il en manque 22, 
 volume baisse de 31,99 à 31,14. Les deux mesures divergent, donc ce n'est pas un
 progrès (CANON 1.17).
 
-⚠ **Arbitrage ouvert sur le studio** : il bat nos préréglages sur nos propres
-critères (volume 22,05 contre 18,63 sur un nez macro, 16,85 contre 14,29 sur la
-poitrine) mais n'a **pas** de contre-jour marqué, donc pas le « gris avec liseré
-et beaucoup de volume » demandé. Le choix se fait **par famille**, pas
-globalement, et il **brûle l'épure** (216 de moyenne, 17 % de tons moyens) : pour
-elle, l'adopter obligerait à baisser l'albédo (CANON 1.20). Voir §9.
+⚠ **Arbitrage ouvert sur le studio, pour les CIBLES** : il bat nos préréglages
+sur nos propres critères (volume 22,05 contre 18,63 sur un nez macro, 16,85
+contre 14,29 sur la poitrine) mais n'a **pas** de contre-jour marqué, donc pas
+le « gris avec liseré et beaucoup de volume » demandé. Le choix se fait **par
+famille**, pas globalement, et il **brûle l'épure** (216 de moyenne, 17 % de
+tons moyens) : pour elle, l'adopter obligerait à baisser l'albédo (CANON 1.20).
+Voir §9. ⛔ **Pour les proxies, cet arbitrage est tranché le 13-09** : voir
+ci-dessous.
 
 ⭐ **Éclairage par défaut du cas générique, arbitré le 12-09-2026 : la face.**
 Choisi à l'œil contre le liseré sur le buste de test, pour un dispositif
 portrait/blueprint à azimut proche de 0. **Ne tranche pas l'arbitrage
 ci-dessus** ni le choix par famille : sur un profil marqué (azimut ≥ 70°) ou
 sur une épure, la question reste ouverte telle que décrite plus haut.
+
+⭐⭐⭐ **Confirmé et généralisé le 13-09-2026, pour les PROXIES sur fond noir et
+corps porcelaine (`--albedo 0.92`)** : **la face**, monde 0,55, bat le liseré
+sur toute la gamme testée, corps 198 contre 158, écart corps/encre 113 contre
+81. La combinaison fond noir + corps porcelaine + exposition +0,7 ne brûle
+pas l'épure (zéro pixel saturé), ce qui lève le problème qui limitait « la
+face » aux cibles seules. Voir §2.7 et CANON 1.23.
 
 ---
 
@@ -263,11 +344,15 @@ sur une épure, la question reste ouverte telle que décrite plus haut.
 | **le grain fin** | idem + `pore_strength=0.10,pore_scale=6000` | les gros plans |
 | **le delta d'aréole** | `nipple:colorMixIn=0.15,colorMixInStrength=0.6` | la famille poitrine |
 | **le blanc technique** | `0.92` **et** exposition +0,9 diaphragme | la moitié maillage d'un diptyque |
-| **le corps très clair** | albédo remonté, sans exposition | l'épure |
+| **le corps très clair** | albédo remonté, sans exposition | l'épure, sur fond transparent (cibles) |
+| **le porcelaine** | `--albedo 0.92`, `--exposure 0.7` | tous les proxies, sur fond noir opaque (13-09) |
 
 ⚠ **Gris, pas blanc.** Le gris est le seul stable quel que soit le thème : 6 points
 d'écart entre thème clair et sombre contre 48 pour le blanc. Ce n'est pas un
-compromis, c'est une indépendance (CANON 1.1).
+compromis, c'est une indépendance (CANON 1.1). ⚠ **Ne s'applique qu'aux cibles**,
+qui restent sur fond transparent. Sur fond **noir opaque**, ce problème
+n'existe plus : le corps peut être porté à 0,92 sans risque d'inversion de
+contraste, voir le porcelaine ci-dessus et CANON 1.23.
 
 ⚠ **Le grain suit l'échelle du cadre.** Des pores réglés pour un corps entier
 deviennent des cratères en gros plan, et la texture prend le pas sur la forme. Le
@@ -374,12 +459,19 @@ vignette oppose deux **traitements** au lieu de deux maillages (CANON 1.9).
 
 ### 5.4 L'azimut
 
+⚠⚠ **Le signe est inversé entre les deux moteurs.** Les valeurs ci-dessous
+(25°, 70°, 90°) sont celles de `rendertargetthumbs.py`, pour les **cibles**,
+où un azimut négatif fait regarder à gauche. Sur `rendermeshthumbs.py`, pour
+les **proxies**, c'est l'inverse, vérifié à l'œil sur six valeurs le 13-09 :
+un azimut **positif** fait regarder à gauche. Ne jamais recopier une valeur
+d'un moteur à l'autre sans revérifier le sens sur l'image.
+
 | valeur | usage |
 |---|---|
-| **−34°** | réglage figé du studio, celui de toutes les vignettes de proxies |
-| **25°** | « la paire », trois-quarts de face. Éclairage **face** |
-| **70°** | « la silhouette » et « le gros plan », trois-quarts de profil. Éclairage **liseré** |
-| **90°** | profil strict |
+| **+34°** | tous les proxies (`rendermeshthumbs.py`), depuis le 13-09 ; symétrique exact de l'ancien −34° figé, dont le sens s'est révélé inversé |
+| **25°** | « la paire », trois-quarts de face, **cibles**. Éclairage **face** |
+| **70°** | « la silhouette » et « le gros plan », trois-quarts de profil, **cibles**. Éclairage **liseré** |
+| **90°** | profil strict, **cibles** |
 
 ⭐ **Valeur par défaut du cas générique, arbitrée le 12-09-2026 : azimut −25°,
 éclairage face.** Vérifiée à l'œil sur une cible de visage (`nose-base-down`) :
@@ -448,7 +540,15 @@ mesurer ensuite.
 
 ### 6.2 Un asset (proxy)
 
-**Quatre mesures, sept règles, et l'ordre compte autant que les seuils.**
+⛔ **SUPERSEDÉ le 13-09-2026 pour le CHOIX du dispositif** : voir §2.7 et CANON
+1.23. Le classement à sept règles ci-dessous, mesuré sur 15 assets, a été
+remplacé par un classement à trois régimes mesuré sur trois nombres
+(`neufs` / `grappes` / `étendue`), plus simple et validé sur les 29 proxies
+des deux paquets. Gardé ici pour la genèse (§6.3) et parce que `density` reste
+utile ponctuellement pour repérer un maillage de jeu.
+
+**Quatre mesures, sept règles, et l'ordre compte autant que les seuils** (état
+avant le 13-09) :
 
 | mesure | définition |
 |---|---|
@@ -570,8 +670,10 @@ C'est l'œil du commanditaire qui tranche (CANON 1.15).
 
 ## 8. Ce qui est réellement implémenté
 
-⚠⚠ **Ce document spécifie plus que ce dépôt ne contient.** Vérification faite le
-12-09 :
+⭐⭐⭐ **`rendermeshthumbs.py` est versionné dans ce dépôt depuis le
+13-09-2026** (commit qui a ajouté `bin/rendermeshthumbs.py` et
+`bin/proxies-v2.sh`). L'avertissement du 12-09 ci-dessous ne vaut plus pour ce
+script ; il est corrigé et complété.
 
 | option | script | état |
 |---|---|---|
@@ -581,11 +683,16 @@ C'est l'œil du commanditaire qui tranche (CANON 1.15).
 | `--curve --width` | `bin/drawoutline.py` | ✅ vérifié |
 | `--region --colour --colour2 --also --width --edges` | `bin/outlineoverlay.py` | ✅ vérifié |
 | (trois positionnels) | `bin/composediptyque.py` | ✅ vérifié |
-| `--top --flat --grey --wire --wire-colour --paint --highlight --compare --mesh-pair --zone --device --shape --subdiv` | `rendermeshthumbs.py` | ⚠⚠ **non versionné ici**. Ces options sont celles qu'appelle `bin/proxies.sh` et que décrit le CANON ; la seule copie vit sur la machine de rendu (`/var/home/soleil/travail-makehuman/staging/bin/`). La copie de `asset_packs_staging` est celle de Joël, qui n'expose que `--pack --samples --subdiv --margin --exposure --ambient --gap --force --no-download --whole` |
+| `--top --flat --grey --wire --wire-colour --paint --highlight --compare --mesh-pair --zone --device --shape --subdiv` | `bin/rendermeshthumbs.py` | ✅ **versionné depuis le 13-09** (voir ligne suivante pour les options ajoutées ce jour-là) |
+| `--out --albedo --paint-floor --paint-emission --paint-new --frame-new --measure-only` (métriques `neufs`/`grappes`/`étendue`) | `bin/rendermeshthumbs.py` | ✅ ajoutées le 13-09-2026, dix patchs séparés conservés dans `makehuman-scripts-2026-09-13/` sur `~/dev/admin` (hors dépôt, historique de développement) |
+| `--paint-rework` (densité normalisée) | `bin/rendermeshthumbs.py` | ⛔ présente mais **écartée** : n'ajoute rien à la densité brute, voir CANON 1.23 « ce qui a échoué » |
+| couleurs d'encre `noir`, `brique`, `encre_bleue`, `vert_sombre` | `bin/rendermeshthumbs.py` | ✅ ajoutées le 13-09, testées pour le daltonisme |
+| `bin/proxies-v2.sh <pack> {mesurer,global,local,disperse}` | — | ✅ recette arrêtée, remplace `bin/proxies.sh` pour les proxies (celui-ci reste utilisable pour d'autres besoins d'assets) |
 | `bin/filigrane.py`, `bin/mesurer-volume.py` | — | ⚠ cités par le CANON, absents de ce dépôt |
 
-**Rien dans ce document ne doit être tenu pour exécutable tant que le moteur des
-assets n'est pas versionné ici.** C'est le premier point d'arbitrage du §9.
+⚠ La copie de `asset_packs_staging` reste celle de Joël, qui n'expose que
+`--pack --samples --subdiv --margin --exposure --ambient --gap --force
+--no-download --whole` : ne pas y chercher les options ci-dessus.
 
 ---
 
@@ -594,33 +701,29 @@ assets n'est pas versionné ici.** C'est le premier point d'arbitrage du §9.
 *Cas déjà rencontrés qui ne rentrent proprement dans aucune case de cette table.
 Ils ne sont pas forcés ; ils attendent une décision.*
 
-### 9.1 Le moteur des assets n'est pas versionné
+### 9.1 ✅ RÉSOLU le 13-09-2026 : le moteur des assets n'était pas versionné
 
-Toutes les options du §2 côté assets ne vivent que sur la machine de rendu. Le
-dépôt ne porte donc pas ce qu'il spécifie, et une perte de la machine emporterait
-la moitié du chantier. **À décider** : verser `rendermeshthumbs.py` (version
-étendue), `filigrane.py` et `mesurer-volume.py` dans `bin/`.
+Toutes les options du §2 côté assets ne vivaient que sur la machine de rendu.
+**Fait** : `rendermeshthumbs.py` et `bin/proxies-v2.sh` sont versionnés dans
+`bin/` depuis le 13-09-2026. `filigrane.py` et `mesurer-volume.py` restent à
+verser, ils ne sont pas mobilisés par le régime unifié du §2.7.
 
-### 9.2 La recette des 14 proxies contredit le classificateur
+### 9.2 ✅ RÉSOLU PAR REMPLACEMENT le 13-09-2026 : la recette des 14 proxies contredisait le classificateur
 
-`makehuman-lot2-recette-proxies-2026-09-12.md` fixe le mode asset par asset sur un
-critère **binaire écrit à la main** (type A « écart global » → `simple` ; type B
-« correction localisée » → `zone`), alors que le §6.2 en produit quatre par une
-mesure. Les deux ne s'accordent pas :
+`makehuman-lot2-recette-proxies-2026-09-12.md` fixait le mode asset par asset
+sur un critère binaire écrit à la main, en désaccord avec le §6.2. **Les deux
+sont maintenant caducs** : le §6.2 est superseded (voir §6.2), et le
+classement à trois régimes du §2.7 a été mesuré et validé à l'œil sur les 29
+proxies des deux paquets, recette y compris. La table de désaccord ci-dessous
+est gardée pour mémoire, elle ne pilote plus rien :
 
-| asset | recette du 12-09 | §6.2 dirait | pourquoi l'écart |
+| asset | recette du 12-09 | §6.2 (caduc) | régime du 13-09 (§2.7) |
 |---|---|---|---|
-| `culturalibre_blind_hand` | `simple` | **diptyque** (règle 2, objet partiel) | une main seule fait moins de 0,9 m |
-| `culturalibre_big_foot` | `simple` | **diptyque** (règle 2) | idem |
-| `joachip_snek` | `simple`, « testé en zone, moins lisible » | **portrait** (règle 3) | la queue de sirène s'écarte de 74 cm |
-| `myxibrium_low_poly_with_mouth_interior` | `simple` | **épure** probable (règle 1) | à confirmer par la densité |
-| `wolgade_female_muscular` / `less_muscular` | `zone` | **carte** (règle 7) | accord, vocabulaire différent |
-
-⚠ Le vocabulaire diffère aussi : la recette dit `simple` / `zone`, la table dit
-épure / diptyque / portrait / carte. **À décider** : la recette est-elle une liste
-d'exceptions nommées (§6.5) qui prime, ou faut-il la rejouer sous le
-classificateur ? Le lot de 14 n'est pas non plus le lot de 15 sur lequel le
-classificateur a été mesuré.
+| `culturalibre_blind_hand` | `simple` | diptyque (règle 2) | local |
+| `culturalibre_big_foot` | `simple` | diptyque (règle 2) | dispersé |
+| `joachip_snek` | `simple`, « testé en zone, moins lisible » | portrait (règle 3) | dispersé |
+| `myxibrium_low_poly_with_mouth_interior` | `simple` | épure (règle 1) | global |
+| `wolgade_female_muscular` / `less_muscular` | `zone` | carte (règle 7) | dispersé |
 
 ### 9.3 `female_generic` et sa version `_fixed` : montrables par aucune vignette
 
@@ -643,20 +746,21 @@ l'information de **où**). Ce qui les sépare est un **motif de taches répartie
 qu'une icône de 120 px ne porte pas. **Limite de résolution assumée, ou ces deux
 assets réclament autre chose qu'une icône ?**
 
-### 9.5 L'éclairage du studio par défaut contre nos préréglages
+### 9.5 ✅ RÉSOLU le 13-09-2026, POUR LES PROXIES : l'éclairage du studio par défaut contre nos préréglages
 
-Il gagne sur nos propres critères et il est le seul dont le contour passe les deux
-thèmes, mais il n'a pas de contre-jour marqué et il **brûle l'épure**. Le choix
-est aujourd'hui **par famille**, ce qui contredit l'argument d'homogénéité du
-§1. **À décider** : bascule globale avec albédo d'épure baissé, ou statu quo
-documenté.
+Sur fond transparent (cibles), l'arbitrage reste ouvert tel que décrit :
+l'éclairage du studio gagne sur nos critères mais brûle l'épure. **Pour les
+proxies**, la question ne se pose plus dans les mêmes termes : sur fond noir
+et corps porcelaine, **la face** bat le liseré sans brûler quoi que ce soit
+(zéro pixel saturé), voir §3 et CANON 1.23. La bascule par famille reste
+d'actualité côté cibles seulement.
 
-### 9.6 Le cadrage de l'épure : `--top 0.20` ou le palier `head` à 0,12
+### 9.6 ✅ RÉSOLU le 13-09-2026, POUR LE RÉGIME GLOBAL : `--top 0.20`
 
-`bin/proxies.sh` pose 0,20, l'échelle A nomme `head` à 0,12. Deux valeurs pour la
-même intention. **À décider** : ajouter un palier `head+épaules` à 0,20, ou aligner
-`proxies.sh` sur 0,12 (au risque de perdre le contexte du buste, que le CANON dit
-nécessaire).
+Confirmé et arrêté comme cadrage du régime **global** (§2.7) : ni un palier de
+l'échelle A ni le `head` à 0,12, une valeur propre au régime. Le régime
+**local** ne s'en sert plus, il cadre par `--frame-new` sur les sommets neufs
+avec une marge relative (plafond 2,2), voir §2.7 et CANON 1.23.
 
 ### 9.7 Les trois premiers paliers de l'échelle B n'ont pas de valeur
 
@@ -674,11 +778,14 @@ avait été retirée. Mais **visuellement négligeable** à cette taille, et la 
 gauche/droite dit déjà l'ordre de lecture. Recommandation : s'en passer. Jamais
 tranché.
 
-### 9.9 Le fond opaque au niveau du pack
+### 9.9 ✅ RÉSOLU le 13-09-2026, POUR LES PROXIES : le fond opaque au niveau du pack
 
-Aucune valeur de corps ne survit aux deux thèmes. Le seul réglage qui trancherait
-est un **fond clair opaque au niveau du pack**, ce qui rompt la convention des 41
-vignettes existantes. Question laissée au propriétaire du pack, jamais reprise.
+**Tranché pour les proxies** : fond **noir** opaque, pas clair — voir §1, §2.7
+et CANON 1.23. Ce choix rompt effectivement avec la convention transparente
+des 41 vignettes existantes du catalogue, assumé par Raphaël. **Reste ouvert**
+pour les cibles, et reste ouvert la question de savoir si le catalogue
+existant (cibles + anciennes vignettes d'assets) doit être regénéré pour
+suivre la même convention, ou coexister avec elle.
 
 ---
 
@@ -707,6 +814,7 @@ vignettes existantes. Question laissée au propriétaire du pack, jamais reprise
 | l'éclairage du studio par défaut | 1.20 |
 | les deux axes de cadrage | 1.21 |
 | couper l'épure en deux | 1.22 |
+| le système des proxies (fond noir, porcelaine, azimut, encre bleue, régime unifié) | 1.23 |
 | voies écartées, à ne pas réinventer | §2 |
 | pièges d'outillage | §3 |
 | erreurs de méthode | §4 |
