@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""⛔ ESSAI CONSIGNE, NON RETENU — gardé pour ne pas le réinventer.
+"""⛔ ESSAI CONSIGNE, NON RETENU, gardé pour ne pas le réinventer.
 
 Composer l'overview + les cellules d'un polyptyque en une seule image.
 

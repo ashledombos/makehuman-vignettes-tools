@@ -10,7 +10,7 @@ Deux leviers geometriques ont ete essayes et mesures, tous deux sans effet :
     cinq fois plus epais, l'image ne bouge pas d'un pixel visible. Ce qu'on
     voit dans une zone fine n'est pas le trait mais l'APLAT de couleur ;
   - `--paint-dilate` (dilatation de la zone le long des aretes du maillage) :
-    584 sommets marques, puis 636, 668, 674 — elle SATURE. La zone des
+    584 sommets marques, puis 636, 668, 674, elle SATURE. La zone des
     paupieres est un ILOT FERME du maillage : tous les voisins de ses
     sommets sont deja marques, la dilatation n'a nulle part ou aller.
 

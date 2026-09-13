@@ -1,4 +1,4 @@
-# Proxy thumbnails — contact sheets
+# Proxy thumbnails: contact sheets
 
 Rendered 2026-09-13 with `bin/proxies-v2.sh`. 29 proxies, two packs.
 
@@ -7,7 +7,7 @@ Rendered 2026-09-13 with `bin/proxies-v2.sh`. 29 proxies, two packs.
 | `proxies01_cc0` | CC0 | 15 | [contact sheet](proxies01_cc0-contact-sheet.png) |
 | `proxies02_ccby` | CC-BY | 14 | [contact sheet](proxies02_ccby-contact-sheet.png) |
 
-## Framing is measured, not chosen
+## Measured framing
 
 Three numbers per proxy: **new vertices** (absent from the base mesh),
 **clusters** they form, **spread** of those clusters in height.
@@ -16,11 +16,11 @@ Three numbers per proxy: **new vertices** (absent from the base mesh),
 |---|---|---|---|---|
 | **global** | new > 90 % | whole mesh, framed on head and shoulders | 4 | 0 |
 | **local** | spread < 35 % | grey mesh, reworked area alone in blue, zoomed | 4 | 7 |
-| **spread** | neither | areas painted, framed on their envelope | 7 | 6 |
+| **spread** | in between | areas painted, framed on their envelope | 7 | 6 |
 
-**Topological, not geometric.** A retopologised ear sits on the same surface
-as the original: no distance measurement sees it, "this vertex is not in the
-base mesh" does.
+**The test is topological.** It asks whether a vertex exists in the base mesh.
+A retopologised ear sits on the same surface as the original one, so distance
+alone stays blind to it.
 
 ## Fixed settings
 
@@ -29,14 +29,14 @@ base mesh" does.
 | background | black, opaque |
 | body | near-white. Neutral by default, **female or male when the asset is sex-specific** (8 of the 29, read from name, title and catalogue category) |
 | colour | one blue for everything mesh-related |
-| edges | real mesh edges — **not** the Wireframe node, which draws the engine's triangulation |
+| edges | the real mesh edges, so quads stay quads. The Wireframe node would draw the engine's triangulation instead |
 | colour blindness | blue keeps its full area under all three forms; the previous orange dropped to 0,01 % under tritanopia |
 
 ## Exception
 
 `jujube_proxy_with_helpers_test` changes two areas far apart (pelvis, face).
-No single frame serves both, so it is a **stacked diptych**, face above,
-anatomy below.
+A single frame serves one or the other, so it is a **stacked diptych**, face
+above, anatomy below.
 
 ## Regenerate
 

@@ -57,7 +57,7 @@ plus, elle se chiffre. ⚠ Ce constat vaut pour les **cibles**, sur fond
 transparent ; les **proxies** ont depuis basculé sur un fond et un corps
 différents, §2.7.
 
-⚠⚠ **Le fond est transparent et le thème de l'usager est inconnu** — vrai pour
+⚠⚠ **Le fond est transparent et le thème de l'usager est inconnu**, vrai pour
 les **cibles**. Les 41 vignettes réelles du catalogue sont transparentes sans
 exception, et Blender livre deux thèmes (panneau sombre à 48/255, panneau clair
 de `#999999` à `#dbdbdb`). Toute vignette de cible se juge donc sur **les deux
@@ -83,7 +83,7 @@ de la table : la plupart des pannes du chantier viennent d'une option juste dans
 un dispositif et fausse dans l'autre, sans que rien ne le signale (CANON 1.11,
 le piège `--top` en mode paire).
 
-### 2.1 La coupe (*split*) — cibles
+### 2.1 La coupe (*split*), cibles
 
 Les deux bouts d'un curseur côte à côte, séparés d'un trait pointillé. Chaque
 moitié est un **demi-format**, l'assemblage un carré.
@@ -101,7 +101,7 @@ moitié est un **demi-format**, l'assemblage un carré.
   icône (CANON 1.9).
 - Outil : `bin/composesplit.py --axis {horizontal,vertical} [--stack] [--no-arrow]`.
 
-### 2.2 Le double trait (*two lines*) — cibles
+### 2.2 Le double trait (*two lines*), cibles
 
 L'état **médian** rendu en dur, et les deux bouts tracés par-dessus en courbes
 pointillées, jaune `#F0E442` et bleu ciel `#56B4E9`, 3 px. Une seule image.
@@ -118,7 +118,7 @@ pointillées, jaune `#F0E442` et bleu ciel `#56B4E9`, 3 px. Une seule image.
   couleur se simule, elle ne se choisit pas à l'œil (CANON 1.2, §2 « écarté »).
 - Outil : `bin/drawoutline.py --curve … --width 3`, ou `bin/outlineoverlay.py`.
 
-### 2.3 Le diptyque — assets
+### 2.3 Le diptyque, assets
 
 Deux moitiés du **même** objet : à gauche le rendu (gris du studio, liseré), à
 droite le maillage (trait d'encre sur blanc technique, exposition +0,9 diaphragme).
@@ -151,7 +151,7 @@ Ce que l'asset rend, et de quoi il est fait.
   topologies différentes pour un même maillage selon l'effet retenu (CANON 1.17).
 - Outil : `bin/composediptyque.py <render> <mesh> <out>`.
 
-### 2.4 L'épure (*blueprint*) — assets
+### 2.4 L'épure (*blueprint*), assets
 
 Une seule image : le maillage tracé sur un corps **très clair**, facettes à plat,
 subdivision coupée. Un plan technique.
@@ -185,7 +185,7 @@ subdivision coupée. Un plan technique.
   n'informe que si son sujet se **reconnaît** : cadrée sur la tête, un 412 faces
   ne donne qu'un œuf gris (CANON 1.19).
 
-### 2.5 La carte (*map*) — assets
+### 2.5 La carte (*map*), assets
 
 Une seule image : corps gris et lisse, zones qui s'écartent du corps de base
 peintes en **orange**, partiellement **émissives**. Dit **où** l'asset modifie
@@ -219,7 +219,7 @@ quelque chose.
   un motif de taches réparties restent à 1,1 de distance à 120 px, contre 15 à 30
   ailleurs. Limite de résolution, pas de conception (CANON 1.13).
 
-### 2.6 Le portrait — assets
+### 2.6 Le portrait, assets
 
 Une seule image, rien d'ajouté.
 
@@ -233,7 +233,7 @@ Une seule image, rien d'ajouté.
   10,4, sirène 8,2, épures 3,3, diptyque 2,7 ; **seuil à 6,0**, au-dessus duquel on
   n'applique pas le liseré (CANON 1.17).
 
-### 2.7 ⭐⭐⭐ Le régime unifié des proxies — arrêté le 13-09-2026
+### 2.7 ⭐⭐⭐ Le régime unifié des proxies, arrêté le 13-09-2026
 
 *Ceci remplace, pour les **proxies** (maillages de corps de remplacement), le
 choix de dispositif du §6.2/6.3 et le décor décrit aux sections 2.3 à 2.6.
@@ -285,7 +285,7 @@ bicolore, sans équivalent antérieur dans ce document.
 Appliqué aux 29 proxies des deux paquets CC0/CC-BY : **4 globaux, 11 locaux,
 13 dispersés**.
 
-### 2.8 Le diptyque empilé — l'exception des deux foyers éloignés
+### 2.8 Le diptyque empilé, l'exception des deux foyers éloignés
 
 *Arrêté le 13-09-2026 sur `jujube_proxy_with_helpers_test`, seul cas du
 catalogue à ce jour. CANON 1.23.*
@@ -739,14 +739,14 @@ script ; il est corrigé et complété.
 | `--resolution <px>` (rendu carré plus grand, pour recadrer sans flou) | `bin/rendermeshthumbs.py` | ✅ ajoutée le 13-09 |
 | `--zone-to-top <marge_m>` (zoom vertical pur, du bas de la zone au sommet du crâne) | `bin/rendermeshthumbs.py` | ✅ ajoutée le 13-09, **non retenue** en production : voir §2.8 |
 | `--polyptych`, `--paint-dilate` | `bin/rendermeshthumbs.py` | ⛔ présentes mais **écartées**, mesures au CANON 1.23. Gardées pour ne pas les réinventer |
-| `bin/composer-diptyque-empile.py` | — | ✅ empile les deux demi-formats du §2.8 en un carré |
-| `bin/epaissir-zone.py` | — | ✅ épaissit une zone colorée **dans l'image**, seul levier qui agisse quand la zone est un îlot fermé du maillage. En réserve, inutile depuis le diptyque |
-| `bin/mesurer.py`, `bin/daltonisme.py`, `bin/morceaux.py` | — | ✅ mesures : contraste corps/encre, simulation des trois daltonismes, morceaux séparés d'un proxy |
-| `bin/composer-polyptyque.py` | — | ⛔ essai consigné, non retenu |
+| `bin/composer-diptyque-empile.py` |  | ✅ empile les deux demi-formats du §2.8 en un carré |
+| `bin/epaissir-zone.py` |  | ✅ épaissit une zone colorée **dans l'image**, seul levier qui agisse quand la zone est un îlot fermé du maillage. En réserve, inutile depuis le diptyque |
+| `bin/mesurer.py`, `bin/daltonisme.py`, `bin/morceaux.py` |  | ✅ mesures : contraste corps/encre, simulation des trois daltonismes, morceaux séparés d'un proxy |
+| `bin/composer-polyptyque.py` |  | ⛔ essai consigné, non retenu |
 | `--paint-rework` (densité normalisée) | `bin/rendermeshthumbs.py` | ⛔ présente mais **écartée** : n'ajoute rien à la densité brute, voir CANON 1.23 « ce qui a échoué » |
 | couleurs d'encre `noir`, `brique`, `encre_bleue`, `vert_sombre` | `bin/rendermeshthumbs.py` | ✅ ajoutées le 13-09, testées pour le daltonisme |
-| `bin/proxies-v2.sh <pack> {mesurer,global,local,disperse}` | — | ✅ recette arrêtée, remplace `bin/proxies.sh` pour les proxies (celui-ci reste utilisable pour d'autres besoins d'assets) |
-| `bin/filigrane.py`, `bin/mesurer-volume.py` | — | ⚠ cités par le CANON, absents de ce dépôt |
+| `bin/proxies-v2.sh <pack> {mesurer,global,local,disperse}` |  | ✅ recette arrêtée, remplace `bin/proxies.sh` pour les proxies (celui-ci reste utilisable pour d'autres besoins d'assets) |
+| `bin/filigrane.py`, `bin/mesurer-volume.py` |  | ⚠ cités par le CANON, absents de ce dépôt |
 
 ⚠ La copie de `asset_packs_staging` reste celle de Joël, qui n'expose que
 `--pack --samples --subdiv --margin --exposure --ambient --gap --force
@@ -838,7 +838,7 @@ tranché.
 
 ### 9.9 ✅ RÉSOLU le 13-09-2026, POUR LES PROXIES : le fond opaque au niveau du pack
 
-**Tranché pour les proxies** : fond **noir** opaque, pas clair — voir §1, §2.7
+**Tranché pour les proxies** : fond **noir** opaque. Voir §1, §2.7
 et CANON 1.23. Ce choix rompt effectivement avec la convention transparente
 des 41 vignettes existantes du catalogue, assumé par Raphaël. **Reste ouvert**
 pour les cibles, et reste ouvert la question de savoir si le catalogue
