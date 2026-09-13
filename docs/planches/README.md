@@ -21,9 +21,10 @@ Three numbers per proxy: **new vertices** (absent from the base mesh),
 | **local** | spread < 35 % | grey mesh, reworked area alone in blue, zoomed | 4 | 7 |
 | **spread** | in between | areas painted, framed on their envelope | 7 | 6 |
 
-**The test is topological.** It asks whether a vertex exists in the base mesh.
-A retopologised ear sits on the same surface as the original one, so distance
-alone stays blind to it.
+**The test compares topology, which is what a proxy changes.** It asks whether
+each vertex exists in the base mesh. A retopologised ear keeps the shape of the
+original one, so the two surfaces overlap and the vertices alone tell them
+apart.
 
 ## Fixed settings
 
