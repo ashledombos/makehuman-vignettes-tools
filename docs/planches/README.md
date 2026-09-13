@@ -2,10 +2,13 @@
 
 Rendered 2026-09-13 with `bin/proxies-v2.sh`. 29 proxies, two packs.
 
-| pack | licence | proxies | sheet |
-|---|---|---|---|
-| `proxies01_cc0` | CC0 | 15 | [contact sheet](proxies01_cc0-contact-sheet.png) |
-| `proxies02_ccby` | CC-BY | 14 | [contact sheet](proxies02_ccby-contact-sheet.png) |
+## `proxies01_cc0`, CC0, 15 proxies
+
+![proxies01_cc0 contact sheet](proxies01_cc0-contact-sheet.png)
+
+## `proxies02_ccby`, CC-BY, 14 proxies
+
+![proxies02_ccby contact sheet](proxies02_ccby-contact-sheet.png)
 
 ## Measured framing
 
