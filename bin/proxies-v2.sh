@@ -36,8 +36,17 @@ MODE=${2:?mode attendu : mesurer, global, local ou disperse}
 shift 2
 OUT=${OUT:-/var/home/soleil/travail-makehuman/vignettes/$PACK-$MODE}
 LUM="key=1.1,fill=0.9,rim=4.0,spot=0.05"
+# ⚠⚠ --guess-body : le corps porteur suit le NOM de l'asset (female, male,
+#    sinon neutre). Sans lui, `wolgade_female_muscular` sortait sur le corps
+#    neutre, qui est un melange a parts egales : tout le propos de l'asset,
+#    une morphologie feminine, s'y perdait. La fonction existait depuis le
+#    06-09 mais n'etait branchee que sous --auto, que cette recette n'utilise
+#    pas. Decision prise, puis perdue faute d'etre sur le bon chemin.
+# ⚠ Le choix du corps precede la MESURE, pas seulement le rendu : l'ecart au
+#    corps sert a classer l'asset. Verifie le 13-09, le regime ne change pour
+#    aucun des 29, les chiffres bougent de quelques dixiemes.
 COMMUN="--force --samples 192 --subdiv 0 --albedo 0.92 --exposure 0.7 \
---azimuth 34 --lights $LUM --world 0.55"
+--azimuth 34 --lights $LUM --world 0.55 --guess-body"
 
 case "$MODE" in
 mesurer)

@@ -27,7 +27,7 @@ base mesh" does.
 | | |
 |---|---|
 | background | black, opaque |
-| body | near-white, neutral (one exception below) |
+| body | near-white. Neutral by default, **female or male when the asset is sex-specific** (8 of the 29, read from name, title and catalogue category) |
 | colour | one blue for everything mesh-related |
 | edges | real mesh edges — **not** the Wireframe node, which draws the engine's triangulation |
 | colour blindness | blue keeps its full area under all three forms; the previous orange dropped to 0,01 % under tritanopia |
@@ -36,7 +36,7 @@ base mesh" does.
 
 `jujube_proxy_with_helpers_test` changes two areas far apart (pelvis, face).
 No single frame serves both, so it is a **stacked diptych**, face above,
-anatomy below. Only proxy rendered on the male body.
+anatomy below.
 
 ## Regenerate
 

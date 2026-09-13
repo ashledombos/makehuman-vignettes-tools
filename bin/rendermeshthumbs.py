@@ -84,6 +84,7 @@ resolution_forcee = None  # --resolution <px> : override carre
 corps_force = None       # --base-force neutral|male|female
 dilatation_zone = 0      # --paint-dilate N : N anneaux de voisins en plus
 paquet_de_zones = None   # --frame-zone haut|bas
+deviner_corps = False    # --guess-body : le corps suit le nom de l'asset
 polyptyque = False       # --polyptych : overview + une cellule par grappe
 zone_a_la_couronne = None  # --zone-to-top <marge> : voir plus bas
 part_emission = None     # --paint-emission : 0,55 par defaut, voir PART_EMISSION
@@ -1834,6 +1835,8 @@ while index < len(argv):
         vraies_aretes = True
     elif argument == "--auto":
         auto = True
+    elif argument == "--guess-body":
+        deviner_corps = True
     elif argument == "--measure-only":
         mesurer_seulement = True
     elif argument == "--frame-new":
@@ -1945,7 +1948,8 @@ for (name, mhclo_file) in assets:
     # ⚠ Et « female » ne doit pas declencher « male » : les mots sont cherches
     # entiers, entoures d'espaces, jamais en sous-chaine. « unisex » ne
     # declenche donc rien non plus, ce qui est le comportement voulu.
-    corps_voulu = corps_force or (deviner_le_sexe(name) if auto else BODY)
+    corps_voulu = corps_force or (deviner_le_sexe(name)
+                                  if (auto or deviner_corps) else BODY)
     basemesh = activer_le_corps(corps_voulu) or bpy.data.objects[corps_voulu]
     bpy.context.view_layer.update()
     bpy.context.view_layer.objects.active = basemesh
