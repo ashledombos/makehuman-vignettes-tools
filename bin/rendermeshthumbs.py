@@ -80,6 +80,12 @@ plancher_ecart = 0.0     # --paint-floor : en metres, voir peindre_lecart
 sommets_neufs = False    # --paint-new : peindre ce que la base n'a pas
 cadrer_neufs = False     # --frame-new : cadrer dessus sans le peindre
 expo_carte = 0.0         # --paint-exposure : la carte ne suit pas --exposure
+resolution_forcee = None  # --resolution <px> : override carre
+corps_force = None       # --base-force neutral|male|female
+dilatation_zone = 0      # --paint-dilate N : N anneaux de voisins en plus
+paquet_de_zones = None   # --frame-zone haut|bas
+polyptyque = False       # --polyptych : overview + une cellule par grappe
+zone_a_la_couronne = None  # --zone-to-top <marge> : voir plus bas
 part_emission = None     # --paint-emission : 0,55 par defaut, voir PART_EMISSION
 densite_normalisee = False  # --paint-rework : le meme rapport, divise par sa
                          # mediane, pour ne garder que les zones retravaillees
@@ -1001,13 +1007,86 @@ def mesurer_les_grappes(clothes, basemesh, nom=""):
         regime = "LOCAL"
     else:
         regime = "DISPERSE"
+    # ⭐ Le detail par grappe : sans lui on sait qu'il y a « six zones » mais
+    # pas si elles sont aux yeux, a la bouche ou ailleurs, donc on ne peut pas
+    # choisir un cadrage.
+    zo_bas = min(zo)
+    zo_haut = max(zo)
+    hauteur_objet = max(zo_haut - zo_bas, 1e-6)
+    membres_par_racine = {}
+    for i in range(total):
+        if marque[i]:
+            membres_par_racine.setdefault(racine(i), []).append(i)
+    groupes_tries = sorted(membres_par_racine.items(),
+                           key=lambda kv: len(kv[1]), reverse=True)
+    for rang, (_, membres) in enumerate(groupes_tries, 1):
+        if len(membres) < 0.02 * marques:
+            continue
+        pts = [mp @ clothes.data.vertices[i].co for i in membres]
+        hs = [(p[2] - zo_bas) / hauteur_objet for p in pts]
+        xs = [p[0] for p in pts]
+        print("   DETAIL grappe %d : %5d sommets, hauteur %.2f a %.2f, "
+              "x median %+.3f" % (rang, len(membres), min(hs), max(hs),
+                                  sorted(xs)[len(xs) // 2]))
     print("-- ZONES %-46s neufs %5.1f%%  grappes %3d  plus_gros %5.1f%%  "
           "etendue %5.1f%%  %s"
           % (nom, 100.0 * marques / total, len(notables),
              100.0 * ordre[0] / marques, 100.0 * etendue, regime))
 
 
+def grappes_des_neufs(clothes, indices_neufs):
+    """Regrouper des indices de sommets en composantes connexes du proxy.
+
+    Reprend le principe de mesurer_les_grappes, mais retourne les INDICES de
+    chaque grappe notable (>= 2% du total marque), triees par taille
+    decroissante, pour qu'on puisse peindre et cadrer CHACUNE separement.
+    """
+    marque = set(indices_neufs)
+    if not marque:
+        return []
+    parent = {i: i for i in marque}
+
+    def racine(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for arete in clothes.data.edges:
+        a, b = arete.vertices
+        if a in marque and b in marque:
+            ra, rb = racine(a), racine(b)
+            if ra != rb:
+                parent[ra] = rb
+    groupes = {}
+    for i in marque:
+        groupes.setdefault(racine(i), []).append(i)
+    seuil = 0.02 * len(marque)
+    notables = [g for g in groupes.values() if len(g) >= seuil]
+    notables.sort(key=len, reverse=True)
+    return notables
+
+
+def peindre_indices(clothes, indices):
+    """Ecrire l'attribut « neuf » pour EXACTEMENT ces sommets, les autres a 0.
+
+    Reutilise pour l'overview (tous les indices) et pour chaque cellule du
+    polyptyque (les indices d'une seule grappe).
+    """
+    couche = clothes.data.color_attributes.get("neuf")
+    if couche is None:
+        couche = clothes.data.color_attributes.new(
+            name="neuf", type="FLOAT_COLOR", domain="POINT")
+    marque = set(indices)
+    for i in range(len(clothes.data.vertices)):
+        v = 1.0 if i in marque else 0.0
+        couche.data[i].color = (v, v, v, 1.0)
+
+
 def peindre_les_nouveaux(clothes, basemesh, tolerance=None):
+
+
+
     """Peindre les sommets du proxy qui ne sont dans le maillage de base.
 
     ⚠ La comparaison se fait en monde, sur les SOMMETS et non sur les faces :
@@ -1060,6 +1139,29 @@ def peindre_les_nouveaux(clothes, basemesh, tolerance=None):
     for m in coupes:
         m.show_render = True
         m.show_viewport = True
+    if dilatation_zone > 0:
+        # ⭐ Dilatation le long des ARETES du maillage : chaque tour ajoute
+        # les voisins immediats des sommets deja marques. Une ligne d'un
+        # sommet de large (une paupiere) s'epaissit d'autant, une zone deja
+        # large (un sexe) ne bouge presque pas.
+        marques = set(indices_neufs)
+        voisins = {}
+        for arete in clothes.data.edges:
+            a, b = arete.vertices
+            voisins.setdefault(a, []).append(b)
+            voisins.setdefault(b, []).append(a)
+        for _ in range(dilatation_zone):
+            ajout = set()
+            for i in marques:
+                ajout.update(voisins.get(i, ()))
+            marques |= ajout
+        avant_dilatation = len(indices_neufs)
+        indices_neufs = sorted(marques)
+        neufs = [mp @ clothes.data.vertices[i].co for i in indices_neufs]
+        for i in indices_neufs:
+            couche.data[i].color = (1.0, 1.0, 1.0, 1.0)
+        print("   zone dilatee de %d anneau(x) : %d sommets marques au lieu "
+              "de %d" % (dilatation_zone, len(indices_neufs), avant_dilatation))
     global INDICES_NEUFS
     INDICES_NEUFS = set(indices_neufs)
     print("   sommets absents de la base : %d sur %d (%.0f%%), tolerance %.4f m"
@@ -1631,7 +1733,9 @@ while index < len(argv):
                     "--device", "--cut", "--azimuth",
                     "--lights", "--world", "--highlight",
                     "--paint-part", "--out", "--albedo", "--paint-floor",
-                    "--paint-exposure", "--paint-emission"]:
+                    "--paint-exposure", "--paint-emission", "--zone-to-top",
+                    "--resolution", "--base-force", "--paint-dilate",
+                    "--frame-zone"]:
         index = index + 1
         if index >= len(argv):
             print(argument + " needs a value")
@@ -1680,6 +1784,20 @@ while index < len(argv):
             couleur_aretes = argv[index]
         elif argument == "--highlight":
             valeur_relief = argv[index]
+        elif argument == "--zone-to-top":
+            zone_a_la_couronne = float(argv[index])
+        elif argument == "--resolution":
+            resolution_forcee = int(argv[index])
+        elif argument == "--frame-zone":
+            paquet_de_zones = argv[index]
+            if paquet_de_zones not in ("haut", "bas"):
+                sys.exit("--frame-zone attend haut ou bas")
+        elif argument == "--paint-dilate":
+            dilatation_zone = int(argv[index])
+        elif argument == "--base-force":
+            corps_force = argv[index]
+            if corps_force not in ("neutral", "male", "female"):
+                sys.exit("--base-force attend neutral, male ou female")
         elif argument == "--paint-emission":
             PART_EMISSION = float(argv[index])
         elif argument == "--paint-exposure":
@@ -1720,6 +1838,8 @@ while index < len(argv):
         mesurer_seulement = True
     elif argument == "--frame-new":
         cadrer_neufs = True
+    elif argument == "--polyptych":
+        polyptyque = True
     elif argument == "--paint-new":
         peindre = True
         sommets_neufs = True
@@ -1808,6 +1928,9 @@ for (name, mhclo_file) in assets:
         scene.render.resolution_x = scene.render.resolution_y // 2
     elif forme == "couche":
         scene.render.resolution_y = scene.render.resolution_x // 2
+    if resolution_forcee:
+        scene.render.resolution_x = resolution_forcee
+        scene.render.resolution_y = resolution_forcee
     memo_resolution = (scene.render.resolution_x, scene.render.resolution_y)
     raise_ambient(scene, ambient)
     if lampes or monde_fond is not None:
@@ -1822,7 +1945,7 @@ for (name, mhclo_file) in assets:
     # ⚠ Et « female » ne doit pas declencher « male » : les mots sont cherches
     # entiers, entoures d'espaces, jamais en sous-chaine. « unisex » ne
     # declenche donc rien non plus, ce qui est le comportement voulu.
-    corps_voulu = deviner_le_sexe(name) if auto else BODY
+    corps_voulu = corps_force or (deviner_le_sexe(name) if auto else BODY)
     basemesh = activer_le_corps(corps_voulu) or bpy.data.objects[corps_voulu]
     bpy.context.view_layer.update()
     bpy.context.view_layer.objects.active = basemesh
@@ -2231,7 +2354,67 @@ for (name, mhclo_file) in assets:
             marge_zone = min(5.5, max(1.02, 0.55 / max(etendue_z, 0.02)))
             print("   enveloppe de %.0f%% de la hauteur du sujet, marge %.2f"
                   % (100.0 * etendue_z, marge_zone))
-        if len(zones) >= 8:
+        if paquet_de_zones is not None and zones:
+            # ⭐ On coupe les grappes en deux paquets au PLUS GRAND TROU de
+            # hauteur, puis on cadre sur celui demande. La coupure se lit
+            # dans l'asset, elle n'est pas decretee.
+            grappes_ici = grappes_des_neufs(clothes, INDICES_NEUFS)
+            mp_ici = clothes.matrix_world
+            centres = []
+            for membres in grappes_ici:
+                pts = [mp_ici @ clothes.data.vertices[i].co for i in membres]
+                centres.append((sum(p[2] for p in pts) / len(pts), pts))
+            centres.sort(key=lambda c: c[0])
+            if len(centres) >= 2:
+                trous = [(centres[k + 1][0] - centres[k][0], k)
+                         for k in range(len(centres) - 1)]
+                _, coupure = max(trous)
+                bas = [p for _, pts in centres[:coupure + 1] for p in pts]
+                haut = [p for _, pts in centres[coupure + 1:] for p in pts]
+            else:
+                bas = haut = [p for _, pts in centres for p in pts]
+            choisi = haut if paquet_de_zones == "haut" else bas
+            (_, taille_choisie) = bounds(choisi)
+            (_, taille_obj) = bounds(points_objet)
+            etendue_c = max(taille_choisie) / max(max(taille_obj), 1e-6)
+            MARGIN = (marge if marge is not None
+                      else min(4.0, max(1.2, 0.35 / max(etendue_c, 0.01))))
+            fit_camera(camera, choisi)
+            centre_c = bounds(choisi)[0]
+            zoom_instead_of_approaching(camera, centre_c)
+            aim_lights(camera, centre_c)
+            print("   cadre sur le paquet %s : %d sommets, etendue %.1f%%, "
+                  "marge %.2f" % (paquet_de_zones, len(choisi),
+                                  100.0 * etendue_c, MARGIN))
+        elif zone_a_la_couronne is not None and zones:
+            # ⭐⭐⭐ Cadrage sur mesure, carre INCHANGE, meme azimut : la
+            # camera se rapproche jusqu'a ce que le sommet du crane touche
+            # le bord haut et le bas de la zone (moins la marge) touche le
+            # bord bas. Les mains n'entrent JAMAIS dans ce calcul.
+            tous_les_sommets = [clothes.matrix_world @ s2.co
+                                for s2 in clothes.data.vertices]
+            z_bas = min(p[2] for p in zones) - zone_a_la_couronne
+            z_haut = max(p[2] for p in tous_les_sommets)
+            # L'AXE VERTICAL CENTRAL du corps : x,y du sommet du crane (region
+            # fiable, toujours sur l'axe du corps, jamais deportee par la
+            # pose des bras). Deux points seulement, memes x,y, z differents :
+            # leur terme de LARGEUR est nul, seule la HAUTEUR compte.
+            bande_crane = [p for p in tous_les_sommets if p[2] >= z_haut - 0.03]
+            if not bande_crane:
+                bande_crane = tous_les_sommets
+            cx = sum(p[0] for p in bande_crane) / len(bande_crane)
+            cy = sum(p[1] for p in bande_crane) / len(bande_crane)
+            from mathutils import Vector as _V
+            point_haut = _V((cx, cy, z_haut))
+            point_bas = _V((cx, cy, z_bas))
+            MARGIN = marge if marge is not None else 1.02
+            fit_camera(camera, [point_haut, point_bas])
+            centre_z = bounds([point_haut, point_bas])[0]
+            zoom_instead_of_approaching(camera, centre_z)
+            aim_lights(camera, centre_z)
+            print("   cadre vertical serre, marge %.3f m, du sommet du "
+                  "crane au bas de la zone (mains ignorees)" % zone_a_la_couronne)
+        elif len(zones) >= 8:
             # ⚠ Une marge de 35 % remettait la tete dans le champ : les zones
             # peintes s'etendent souvent des epaules aux mollets, donc leur
             # enveloppe fait deja presque tout le corps et il ne reste rien a
@@ -2260,6 +2443,61 @@ for (name, mhclo_file) in assets:
         print("-- RENDER: " + destination + " (zone peinte, exposition %.2f)"
               % expo_carte)
         rendered = rendered + 1
+
+        if polyptyque and sommets_neufs:
+            # ⭐⭐⭐ Demande de Raphael, 13-09 : sur un proxy dont les zones
+            # sont ELOIGNEES (la sirene, jujube_proxy_with_helpers_test), une
+            # seule image ne peut pas etre a la fois large (montrer que
+            # c'est un corps) et serree (montrer chaque zone). L'overview
+            # garde le corps entier ; une cellule par grappe zoome dessus.
+            grappes = grappes_des_neufs(clothes, INDICES_NEUFS)
+            if len(grappes) >= 2:
+                base_destination = destination[:-4]
+                # -- overview : toutes les zones peintes, cadre sur l'OBJET
+                # ⚠⚠ PAS sur points_objet : celui-ci ne garde que le plus
+                # gros ilot connexe (largest_group), ce qui coupe les mains et
+                # les pieds d'un proxy en plusieurs morceaux comme punkduck.
+                tous_les_sommets_du_proxy = [
+                    clothes.matrix_world @ s.co for s in clothes.data.vertices]
+                peindre_indices(clothes, INDICES_NEUFS)
+                fit_camera(camera, tous_les_sommets_du_proxy)
+                centre_o = bounds(tous_les_sommets_du_proxy)[0]
+                zoom_instead_of_approaching(camera, centre_o)
+                aim_lights(camera, centre_o)
+                scene.render.filepath = base_destination + "-overview.png"
+                scene.view_settings.exposure = expo_carte
+                bpy.ops.render.render(write_still=True)
+                scene.view_settings.exposure = memo_expo_carte
+                print("-- RENDER: " + base_destination + "-overview.png"
+                      " (polyptyque, %d grappes)" % len(grappes))
+                # -- une cellule par grappe, zoomee, meme couleur
+                for i, grappe in enumerate(grappes):
+                    peindre_indices(clothes, grappe)
+                    positions = [clothes.matrix_world @ clothes.data.vertices[idx].co
+                                 for idx in grappe]
+                    hz = bounds(positions)[1][2]
+                    ho = max(bounds(tous_les_sommets_du_proxy)[1][2], 1e-6)
+                    marge_cellule = min(2.2, max(1.02, 0.55 / max(hz / ho, 0.02)))
+                    ancienne_marge = MARGIN
+                    MARGIN = marge_cellule
+                    fit_camera(camera, positions)
+                    centre_c = bounds(positions)[0]
+                    zoom_instead_of_approaching(camera, centre_c)
+                    aim_lights(camera, centre_c)
+                    MARGIN = ancienne_marge
+                    scene.render.filepath = (base_destination
+                                              + "-cell%d.png" % (i + 1))
+                    scene.view_settings.exposure = expo_carte
+                    bpy.ops.render.render(write_still=True)
+                    scene.view_settings.exposure = memo_expo_carte
+                    print("-- RENDER: " + base_destination + "-cell%d.png"
+                          " (%d sommets, marge %.2f)"
+                          % (i + 1, len(grappe), marge_cellule))
+                # remettre l'attribut complet, au cas ou un mode suivant le lirait
+                peindre_indices(clothes, INDICES_NEUFS)
+            else:
+                print("   polyptyque : une seule grappe notable, "
+                      "l'image simple suffit")
         continue
 
     if paire_maillage and not paire_ici:

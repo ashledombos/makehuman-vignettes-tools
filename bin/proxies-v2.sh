@@ -7,6 +7,7 @@
 #   sh proxies-v2.sh <pack> global  [assets] # neufs > 90 %
 #   sh proxies-v2.sh <pack> local   [assets] # etendue < 35 %
 #   sh proxies-v2.sh <pack> disperse [assets] # ni l'un ni l'autre
+#   sh proxies-v2.sh <pack> diptyque-empile <asset> # exception nommee (13-09)
 #
 # ⚠⚠ LE CLASSEMENT NE SE DEVINE PAS : lancer `mesurer` d'abord et lire la
 #    ligne « -- ZONES » de chaque asset, qui donne neufs / grappes / etendue et
@@ -78,8 +79,47 @@ disperse)
         -P $A/bin/rendermeshthumbs.py -- --pack "$PACK" $COMMUN \
         --paint-new --highlight encre_bleue --out "$OUT" "$@"
     ;;
+diptyque-empile)
+    # ⭐⭐⭐ Exception NOMMEE, arretee le 13-09-2026 sur
+    # jujube_proxy_with_helpers_test, qui modifie DEUX foyers eloignes : une
+    # anatomie ajoutee au bassin et le visage (la bouche a 0,89 de hauteur,
+    # les quatre paupieres a 0,94). Deux prises en demi-format couche, le
+    # visage en haut, l'anatomie en bas, empilees en un carre.
+    #
+    # ⚠ Le paquet de zones ne se decrete pas : `--frame-zone haut|bas` trie
+    #   les grappes par hauteur et coupe au PLUS GRAND TROU. Ici 39 points de
+    #   hauteur separent le sexe du visage, contre 3 entre bouche et yeux :
+    #   l'asset designe lui-meme ses deux paquets.
+    # ⚠ Marges arretees a l'oeil : 1,8 en haut (le visage entier reste
+    #   reconnaissable) et 1,3 en bas (la trame du maillage se lit).
+    # ⚠ Corps MASCULIN pour cet asset, arbitre le 13-09 : compare aux trois
+    #   corps, c'est le seul ou l'anatomie ajoutee ne parait pas rapportee.
+    #   Le neutre reste la regle pour les 28 autres proxies.
+    # ⚠ Trait de maillage NON force : le defaut, comme partout ailleurs.
+    #
+    # ⛔ Deux voies essayees et ecartees le meme jour, toutes deux mesurees :
+    #   - le polyptyque (vue d'ensemble + une cellule par grappe) : « ca rend
+    #     moins bien » ; sur la sirene et les membres isoles, retour au
+    #     cadrage disperse simple ;
+    #   - la vignette UNIQUE tres resserree (`--zone-to-top`, gardee dans le
+    #     moteur) : lisible, mais le diptyque donne « une certaine
+    #     coherence » qu'elle n'avait pas.
+    mkdir -p "$OUT"
+    for zone in haut bas; do
+        if [ "$zone" = haut ]; then MARGE=1.8; else MARGE=1.3; fi
+        flatpak run --command=blender org.blender.Blender -b \
+            $A/thumbnail_production/studio_base.blend \
+            -P $A/bin/rendermeshthumbs.py -- --pack "$PACK" $COMMUN \
+            --paint-new --highlight encre_bleue --frame-zone "$zone" \
+            --margin "$MARGE" --shape couche --base-force male \
+            --out "$OUT/$zone" "$@"
+    done
+    echo "Assembler ensuite :"
+    echo "  python3 composer-diptyque-empile.py \\"
+    echo "      $OUT/haut/<nom>.png $OUT/bas/<nom>.png $OUT/<nom>.png"
+    ;;
 *)
-    echo "mode inconnu : $MODE (mesurer, global, local, disperse)" >&2
+    echo "mode inconnu : $MODE (mesurer, global, local, disperse, diptyque-empile)" >&2
     exit 1
     ;;
 esac

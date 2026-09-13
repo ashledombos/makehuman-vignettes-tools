@@ -285,6 +285,55 @@ bicolore, sans équivalent antérieur dans ce document.
 Appliqué aux 29 proxies des deux paquets CC0/CC-BY : **4 globaux, 11 locaux,
 13 dispersés**.
 
+### 2.8 Le diptyque empilé — l'exception des deux foyers éloignés
+
+*Arrêté le 13-09-2026 sur `jujube_proxy_with_helpers_test`, seul cas du
+catalogue à ce jour. CANON 1.23.*
+
+**Besoin** : un asset qui modifie **deux foyers loin l'un de l'autre**, ici une
+anatomie ajoutée au bassin (hauteur 0,45 à 0,50) et le visage (la bouche à
+0,89, les quatre paupières à 0,94). Aucune image unique ne les sert : cadrée
+large, les paupières sont illisibles ; cadrée serré, il faut choisir un foyer.
+
+**Forme** : deux prises en **demi-format couché** (256 × 128, `--shape couche`)
+empilées en un carré, le visage en haut, l'anatomie en bas, séparées d'un trait
+blanc d'un pixel. Outil : `bin/composer-diptyque-empile.py`.
+
+| réglage | valeur | pourquoi |
+|---|---|---|
+| marge du haut | 1,8 | le visage entier reste reconnaissable |
+| marge du bas | 1,3 | la trame du maillage de l'ajout se lit |
+| corps | **masculin** (`--base-force male`) | le seul des trois où l'ajout ne paraît pas rapporté. ⚠ Le neutre reste la règle pour les 28 autres proxies |
+| trait | **non forcé** | le défaut, comme partout ailleurs |
+
+⭐⭐ **La coupure entre les deux paquets se lit, elle ne se décrète pas.**
+`--frame-zone haut|bas` trie les grappes par hauteur et coupe au **plus grand
+trou** : ici 39 points de hauteur séparent le sexe du visage, contre 3 entre la
+bouche et les yeux. L'asset désigne lui-même ses paquets, et la règle
+se transporte à tout asset à deux foyers.
+
+⚠ **Ce n'était pas « seulement les yeux »**, ce que l'œil croyait. Sans le
+détail par grappe (`DETAIL grappe` sous `--measure-only`), on aurait fait un
+macro sur les paupières et perdu la bouche. **Mesurer où sont les zones avant
+de choisir le cadrage.**
+
+⚠ **Le trait de séparation se dessine, il ne s'insère pas** : un `-splice 0x1`
+ajoute sa ligne à la hauteur et sort du 256 × 257, donc plus une icône carrée.
+
+⛔ **Trois voies écartées pour ce même cas, toutes mesurées** (CANON 1.23) :
+le **polyptyque** (vue d'ensemble plus une cellule par grappe), jugé « moins
+bien » ; la **vignette unique très resserrée** (`--zone-to-top`, gardée au
+moteur), lisible mais moins cohérente ; et deux leviers morts pour épaissir une
+zone fine, `--wire` (aucun effet : c'est un **aplat** qu'on regarde, pas un
+trait) et `--paint-dilate` (sature, la zone est un **îlot fermé** du maillage).
+
+⚠⚠ **Le format carré impose la largeur.** À champ égal, une fois la hauteur
+fixée, la largeur réellement montrée vaut la même distance physique : les mains
+entrent dans le champ parce qu'elles y sont, non parce que la visée les
+cherchait. Trois filtrages des points de visée n'y ont rien changé. Pour ne
+dépendre que de la hauteur, ne donner à `fit_camera` que **deux points sur
+l'axe vertical central**, dont le terme de largeur est nul par construction.
+
 ---
 
 ## 3. Les éclairages
@@ -684,7 +733,16 @@ script ; il est corrigé et complété.
 | `--region --colour --colour2 --also --width --edges` | `bin/outlineoverlay.py` | ✅ vérifié |
 | (trois positionnels) | `bin/composediptyque.py` | ✅ vérifié |
 | `--top --flat --grey --wire --wire-colour --paint --highlight --compare --mesh-pair --zone --device --shape --subdiv` | `bin/rendermeshthumbs.py` | ✅ **versionné depuis le 13-09** (voir ligne suivante pour les options ajoutées ce jour-là) |
-| `--out --albedo --paint-floor --paint-emission --paint-new --frame-new --measure-only` (métriques `neufs`/`grappes`/`étendue`) | `bin/rendermeshthumbs.py` | ✅ ajoutées le 13-09-2026, dix patchs séparés conservés dans `makehuman-scripts-2026-09-13/` sur `~/dev/admin` (hors dépôt, historique de développement) |
+| `--out --albedo --paint-floor --paint-emission --paint-new --frame-new --measure-only` (métriques `neufs`/`grappes`/`étendue`) | `bin/rendermeshthumbs.py` | ✅ ajoutées le 13-09-2026, patchs séparés conservés dans `makehuman-scripts-2026-09-13/` sur `~/dev/admin` (hors dépôt, historique de développement) |
+| `--frame-zone haut\|bas` (cadrer sur un paquet de zones, coupé au plus grand trou de hauteur) | `bin/rendermeshthumbs.py` | ✅ ajoutée le 13-09, pilote le diptyque empilé du §2.8 |
+| `--base-force neutral\|male\|female` (imposer le corps porteur) | `bin/rendermeshthumbs.py` | ✅ ajoutée le 13-09. ⚠ Exception nommée : seul `jujube_proxy_with_helpers_test` s'en sert, le neutre reste la règle |
+| `--resolution <px>` (rendu carré plus grand, pour recadrer sans flou) | `bin/rendermeshthumbs.py` | ✅ ajoutée le 13-09 |
+| `--zone-to-top <marge_m>` (zoom vertical pur, du bas de la zone au sommet du crâne) | `bin/rendermeshthumbs.py` | ✅ ajoutée le 13-09, **non retenue** en production : voir §2.8 |
+| `--polyptych`, `--paint-dilate` | `bin/rendermeshthumbs.py` | ⛔ présentes mais **écartées**, mesures au CANON 1.23. Gardées pour ne pas les réinventer |
+| `bin/composer-diptyque-empile.py` | — | ✅ empile les deux demi-formats du §2.8 en un carré |
+| `bin/epaissir-zone.py` | — | ✅ épaissit une zone colorée **dans l'image**, seul levier qui agisse quand la zone est un îlot fermé du maillage. En réserve, inutile depuis le diptyque |
+| `bin/mesurer.py`, `bin/daltonisme.py`, `bin/morceaux.py` | — | ✅ mesures : contraste corps/encre, simulation des trois daltonismes, morceaux séparés d'un proxy |
+| `bin/composer-polyptyque.py` | — | ⛔ essai consigné, non retenu |
 | `--paint-rework` (densité normalisée) | `bin/rendermeshthumbs.py` | ⛔ présente mais **écartée** : n'ajoute rien à la densité brute, voir CANON 1.23 « ce qui a échoué » |
 | couleurs d'encre `noir`, `brique`, `encre_bleue`, `vert_sombre` | `bin/rendermeshthumbs.py` | ✅ ajoutées le 13-09, testées pour le daltonisme |
 | `bin/proxies-v2.sh <pack> {mesurer,global,local,disperse}` | — | ✅ recette arrêtée, remplace `bin/proxies.sh` pour les proxies (celui-ci reste utilisable pour d'autres besoins d'assets) |
