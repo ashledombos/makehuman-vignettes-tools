@@ -15,8 +15,10 @@ quel sujet, et la règle qui choisit. Les valeurs y portent toutes un **nom**
 (« la paire », « le liseré », « le porcelaine », « le double trait »), et une
 recette se relit en citant ces noms plutôt qu'en rouvrant le script.
 
-`docs/planches/` montre le résultat sur les 29 proxies des deux paquets, avec un
-README en anglais qui explique la logique des trois régimes.
+`docs/planches/` montre le résultat, les 29 proxies des deux paquets et les six
+vignettes de la famille poitrine, avec un README en anglais qui explique la
+logique des trois régimes et celle des deux dispositifs de cibles. Les six
+vignettes livrables sont dans `docs/planches/breast-targets/`.
 
 ## Les deux recettes exécutables
 
