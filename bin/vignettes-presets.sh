@@ -43,6 +43,19 @@ MONDE_PROFIL=0.4
 # l'usager, 6 points d'ecart entre theme clair et sombre contre 48 pour le
 # blanc. Ce n'est pas un compromis, c'est une independance.
 PEAU_GRISE="colorMixIn=0.5,colorMixInStrength=0.6"
+# ⭐⭐ LE CLAIR des cibles, arrete le 13-09-2026. Volontairement PLUS SOMBRE
+# que le porcelaine des proxies (0,92), et pour une raison de fond : le corps
+# d un proxy est un FOND sous un maillage bleu, celui d une cible est le
+# SUJET, dont la forme doit se lire. Un sein est une surface courbe sans
+# arete, il ne tient que par son degrade.
+# Mesure sur quatre niveaux, pointe et areole : le modele perd 13 a 18 % entre
+# 0,50 et 0,92 et les tons moyens tombent de 95 a 83 %, tandis que l amplitude
+# du changement entre les deux bouts monte de 27 a 41. Les deux criteres vont
+# donc en sens INVERSE. A 0,68 le modele ne perd que 5 %, l amplitude gagne 5
+# a 22 %, et les tons moyens culminent a 99 % : le seul niveau ou les deux
+# tiennent ensemble.
+PEAU_CLAIRE="colorMixIn=0.68,colorMixInStrength=0.70"
+PEAU_CLAIRE_GROS_PLAN="colorMixIn=0.68,colorMixInStrength=0.70,pore_strength=0.10,pore_scale=6000"
 
 # ⚠ En gros plan, le grain de pores regle pour un corps entier devient un
 # relief lunaire : la texture prend le pas sur la forme. Le grain doit suivre

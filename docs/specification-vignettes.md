@@ -334,6 +334,59 @@ cherchait. Trois filtrages des points de visée n'y ont rien changé. Pour ne
 dépendre que de la hauteur, ne donner à `fit_camera` que **deux points sur
 l'axe vertical central**, dont le terme de largeur est nul par construction.
 
+### 2.9 ⭐⭐⭐ La recette de la famille poitrine, arrêtée le 13-09-2026
+
+*Symétrique du §2.7 pour les cibles. Six curseurs, six vignettes, un geste.
+Chaque case cite un **nom** défini ailleurs dans cette spécification, jamais
+un chiffre nu : c'est ce qui permet de reprendre une vignette sans rouvrir le
+script.*
+
+```sh
+ATELIER=… CIBLES=… sh bin/poitrine.sh clair    # rend les bouts, puis assemble
+ATELIER=… sh bin/assembler-poitrine.sh clair   # l'assemblage seul, sans GPU
+```
+
+| curseur | cibles `.target.gz` | vue (§5.5) | éclairage (§3) | matière (§4) | dispositif (§2) | nom livré |
+|---|---|---|---|---|---|---|
+| écartement | `breast-dist-decr` / `-incr` | **la paire**, 0,26 m | **la face** | le clair + delta d'aréole | **la coupe**, horizontale | `breast-dist-decr-incr.png` |
+| taille d'aréole | `nipple-size-decr` / `-incr` | **la paire**, 0,26 m | **la face** | le clair + delta d'aréole | **la coupe**, horizontale | `nipple-size-decr-incr.png` |
+| saillie du mamelon | `nipple-point-decr` / `-incr` | **la paire**, 0,26 m | **la face** | le clair + delta d'aréole | **la coupe**, horizontale | `nipple-point-decr-incr.png` |
+| pointe | `breast-point-decr` / `-incr` | **la silhouette**, 0,15 m | **le liseré** | le clair + delta d'aréole | **la coupe**, verticale | `breast-point-decr-incr.png` |
+| hauteur | `breast-trans-down` / `-up` | **la silhouette**, 0,20 m | **le liseré** | le clair + delta d'aréole | **la coupe**, verticale | `breast-trans-down-up.png` |
+| répartition | `breast-volume-vert-down` / `-up` | **le gros plan**, 0,20 m | **le liseré** | le clair **grain fin** + delta d'aréole | **le double trait** | `breast-volume-vert-down-up.png` |
+
+| réglage | valeur | pourquoi |
+|---|---|---|
+| fond | **noir opaque**, appliqué **en dernier** | même convention que les proxies (§2.7). ⚠ L'aplatir avant le tracé ferait mentir `outlineoverlay.py` et `composesplit.py`, qui cherchent leur région dans la **différence** des deux états |
+| matière | **le clair des cibles**, `colorMixIn=0.68` (§4) | volontairement plus sombre que le porcelaine 0,92 des proxies : le corps d'un proxy est un **fond**, celui d'une cible est le **sujet** (CANON 1.24) |
+| azimut | **25°** pour la paire, **70°** pour la silhouette et le gros plan | l'éclairage suit l'angle, il ne se recopie pas (§3). ⚠⚠ Le signe est celui de `rendertargetthumbs.py`, **inverse** de `rendermeshthumbs.py` (§5.4) |
+| amplitudes | `--amounts 1.0 --after-only` pour les coupes, **sans** `--after-only` pour le double trait | le double trait a besoin de l'état **médian** en plus des deux bouts : c'est le fichier `-before` |
+| trait | chaud `#F0E442` pour le bout haut, froid `#56B4E9` pour le bas, 3 px | Okabe-Ito. Mesure du 13-09 : les deux traits restent séparés de **189 à 201** en distance RGB sous les trois daltonismes, contre 232 en vision normale, là où rose/cyan tombait à 55 |
+| communs | `--who female --size 256 --refine --hide-inner --fstop 0 --samples 512` | §5.5 |
+
+⭐ **Les noms livrés ne s'inventent pas.** Une image de curseur MPFB s'appelle
+`<cible-basse>-<suffixe-haut>.png` et vit dans `data/targets/_images/`. Les six
+ci-dessus **existent déjà** parmi les 216 images de l'extension installée : la
+livraison est un remplacement, pas un ajout.
+
+⚠ **Les prises et l'axe de coupe sont liés** : `--rect` donne 256 × 128 et
+demande une coupe horizontale, `--portrait` donne 128 × 256 et demande une
+coupe verticale (§2.1). Le gros plan est carré, et c'est cohérent : le double
+trait produit une **image unique**, pas un assemblage.
+
+⭐ **Reproductibilité mesurée depuis ce dépôt seul** : trois à vingt-trois
+pixels d'écart sur 65 536 pour les cinq coupes, contre 33 000 à 60 000 pour un
+témoin décalé d'un degré d'azimut. La répartition fait exception en compte
+(8 199 px) sans faire exception à l'œil : son amplitude moyenne vaut 0,066 sur
+255 contre 8,16 pour le témoin, son grain de pores en gros plan ne se
+redébruitant pas à l'identique. Table complète au README.
+
+⭐ **Le tracé est insensible au corps**, mesuré : il couvre 2,49 % des pixels
+sur corps clair contre 2,52 % sur gris. Il est dessiné **en 2D après le
+rendu**, donc ni l'éclairage ni la courbe de rendu ne l'atteignent. Avant de
+recalibrer une couleur pour un nouveau fond, demander par où elle passe
+(CANON 1.24).
+
 ---
 
 ## 3. Les éclairages
@@ -393,6 +446,7 @@ face » aux cibles seules. Voir §2.7 et CANON 1.23.
 | **le grain fin** | idem + `pore_strength=0.10,pore_scale=6000` | les gros plans |
 | **le delta d'aréole** | `nipple:colorMixIn=0.15,colorMixInStrength=0.6` | la famille poitrine |
 | **le blanc technique** | `0.92` **et** exposition +0,9 diaphragme | la moitié maillage d'un diptyque |
+| **le clair des cibles** | `colorMixIn=0.68,colorMixInStrength=0.70` | toute la famille poitrine sur fond noir (§2.9). Volontairement **plus sombre** que le porcelaine des proxies : entre 0,50 et 0,92 le modelé perd 13 à 18 % et les tons moyens tombent de 95 à 83 %, tandis que l'amplitude du changement monte de 27 à 41. Les deux critères vont en sens **inverse**, et 0,68 est le seul niveau où ils tiennent ensemble : 5 % de modelé perdu, 5 à 22 % d'amplitude gagnée, 99 % de tons moyens (CANON 1.24) |
 | **le corps très clair** | albédo remonté, sans exposition | l'épure, sur fond transparent (cibles) |
 | **le porcelaine** | `--albedo 0.92`, `--exposure 0.7` | tous les proxies, sur fond noir opaque (13-09) |
 
@@ -746,6 +800,9 @@ script ; il est corrigé et complété.
 | `--paint-rework` (densité normalisée) | `bin/rendermeshthumbs.py` | ⛔ présente mais **écartée** : n'ajoute rien à la densité brute, voir CANON 1.23 « ce qui a échoué » |
 | couleurs d'encre `noir`, `brique`, `encre_bleue`, `vert_sombre` | `bin/rendermeshthumbs.py` | ✅ ajoutées le 13-09, testées pour le daltonisme |
 | `bin/proxies-v2.sh <pack> {mesurer,global,local,disperse}` |  | ✅ recette arrêtée, remplace `bin/proxies.sh` pour les proxies (celui-ci reste utilisable pour d'autres besoins d'assets) |
+| `bin/poitrine.sh [clair]` |  | ✅ recette arrêtée de la famille poitrine (§2.9) : rend les six paires de bouts, puis appelle l'assemblage. Sans argument, l'ancien gris ; `clair` pour la convention du 13-09 |
+| `bin/assembler-poitrine.sh [clair]` |  | ✅ compose les six carrés de 256 à partir des bouts : cinq coupes et un double trait, puis fond noir opaque. Ne demande **pas** Blender, donc se rejoue en deux secondes |
+| `ATELIER=` et `CIBLES=` |  | ✅ surchargent le dossier de travail et le dossier des `.target.gz` dans `poitrine.sh` et `assembler-poitrine.sh`. ⚠ Les autres scripts gardent un chemin en dur vers clairdelune : un chemin en dur **ne se teste pas** |
 | `bin/filigrane.py`, `bin/mesurer-volume.py` |  | ⚠ cités par le CANON, absents de ce dépôt |
 
 ⚠ La copie de `asset_packs_staging` reste celle de Joël, qui n'expose que
