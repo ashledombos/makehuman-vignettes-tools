@@ -1211,6 +1211,10 @@ def main():
     a.add_argument("--width", type=float, default=0.0,
                    help="largeur de corps a cadrer, en metres, au lieu de "
                         "celle deduite de l'etendue de la cible")
+    a.add_argument("--lens", type=float, default=0.0, dest="focale",
+                   help="focale en mm, au lieu du 200 mm du studio. "
+                        "Indispensable sous 5 cm de cadre : la camera ne "
+                        "peut pas approcher plus pres que MIN_DISTANCE")
     a.add_argument("--limit", type=int, default=0,
                    help="stop after this many targets (0 = all)")
     a.add_argument("--after-only", action="store_true", dest="after_only")
@@ -1231,6 +1235,26 @@ def main():
 
     os.makedirs(o.out, exist_ok=True)
     scene = preparer_scene(o.who, o.samples, o.size, o.rect, o.portrait)
+    # ⭐⭐ LA FOCALE, et pourquoi elle existe. `MIN_DISTANCE` plafonne la
+    # camera a 28 cm du sujet, ce qui, au 200 mm du studio, borne le cadre a
+    # **5 cm de large** : mesure, `--width 0.045`, `0.032` et `0.022` rendent
+    # trois images identiques, toutes a d=0.280. Il devenait donc impossible
+    # de cadrer un oeil seul, ou une narine seule, quoi qu'on demande.
+    #
+    # La reponse n'est pas d'approcher mais d'allonger la focale, ce qui est
+    # aussi la verite photographique du macro : on garde la distance et l'on
+    # change d'objectif. Au 400 mm le cadre minimum tombe a 2,5 cm, au 800 mm
+    # a 1,2 cm, et la perspective reste plate au lieu de bomber le sujet comme
+    # le ferait une camera collee a la peau.
+    #
+    # ⚠ Rien d'autre n'est a corriger : `cadrage()` et la sonde lisent
+    # `camera.data.angle`, donc la distance suit l'objectif toute seule.
+    if o.focale:
+        for nom in ("camera.l", "camera.r"):
+            appareil = bpy.data.objects.get(nom)
+            if appareil:
+                appareil.data.lens = o.focale
+        print(f"LENS objectif regle a {o.focale} mm")
     # ⚠ L'ordre compte, et l'inverse était faux. `--skin-tune` s'applique aux
     # **sept** matériaux du corps, donc il écrase un réglage de zone posé
     # avant lui : trois essais de teinte d'aréole avaient rendu trois images

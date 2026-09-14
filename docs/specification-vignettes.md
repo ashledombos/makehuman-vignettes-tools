@@ -781,6 +781,7 @@ script ; il est corrigé et complété.
 | option | script | état |
 |---|---|---|
 | `--azimuth --elevation --width --lift --look-at --rect --portrait --size --samples --amounts --arms-down --hide-inner --one-side --on-axis --far-side --aim --refine --region --stylise --sector --weight --lights --world --skin-tune --zone-tune --sss --skin --skin-saturation --skin-lift --fstop --base --fit --who --framing --single-rig --ethnicity` | `bin/rendertargetthumbs.py` | ✅ vérifié dans ce dépôt |
+| `--lens` | `bin/rendertargetthumbs.py` | ✅ ajoutée le 14-09-2026. **Sans elle, aucun cadre sous 5 cm** : `MIN_DISTANCE` plafonne la caméra à 28 cm, donc au 200 mm du studio `--width 0.045`, `0.032` et `0.022` rendent trois images identiques, toutes à d=0,280 (mesuré). On allonge la focale au lieu d'approcher, ce qui est la vérité photographique du macro et garde la perspective plate. Au 400 mm le cadre minimum tombe à 2,5 cm. ⚠ Sans effet par défaut (`0`), et rien d'autre n'est à corriger : `cadrage()` et la sonde lisent `camera.data.angle` |
 | `--axis --split --measure --mirror --stack --outline --no-arrow --bare` | `bin/composesplit.py` | ✅ vérifié |
 | `--width --colour` | `bin/keyline.py` | ✅ vérifié |
 | `--curve --width` | `bin/drawoutline.py` | ✅ vérifié |
