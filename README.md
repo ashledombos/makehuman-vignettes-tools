@@ -20,6 +20,13 @@ vignettes de la famille poitrine, avec un README en anglais qui explique la
 logique des trois régimes et celle des deux dispositifs de cibles. Les six
 vignettes livrables sont dans `docs/planches/breast-targets/`.
 
+## Licence
+
+Code et documentation sous **AGPL-3.0-or-later** (`LICENSE`), la licence de
+MPFB2. Les vignettes de `docs/planches/` dérivent du maillage de base de
+MakeHuman et des assets qu'elles illustrent, et suivent la licence de leur
+sujet, indiquée dans le README de ce dossier.
+
 ## Les deux recettes exécutables
 
 ```sh
