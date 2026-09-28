@@ -120,3 +120,15 @@ back within 3 to 23 pixels out of 65 536, and the sixth within 8 199 pixels of
 an average amplitude of 0.066 out of 255, its close-up skin grain being denoised
 slightly differently each time. One degree of azimuth, by comparison, moves
 33 000 to 60 000 pixels.
+
+## Wireframe patch, work in progress
+
+Ten targets rendered 2026-09-24 to 27, for very small changes. The mesh is drawn
+only on the zone the target moves, over a normal render; each target is shown
+in the view, front or profile, where the change reads best. Not proposed
+upstream yet.
+
+![wireframe patch examples](wireframe-patch-examples.png)
+
+Nine targets by elvs and jujube, from makehumancommunity.org; the nostril one
+ships with MPFB.
