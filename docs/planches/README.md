@@ -121,12 +121,12 @@ an average amplitude of 0.066 out of 255, its close-up skin grain being denoised
 slightly differently each time. One degree of azimuth, by comparison, moves
 33 000 to 60 000 pixels.
 
-## Wireframe patch, work in progress
+## Wireframe patch, first examples
 
 Ten targets rendered 2026-09-24 to 27, for very small changes. The mesh is drawn
 only on the zone the target moves, over a normal render; each target is shown
-in the view, front or profile, where the change reads best. Not proposed
-upstream yet.
+in the view, front or profile, where the change reads best. The whole set of
+community targets now lives in `../vignettes-cibles/`.
 
 ![wireframe patch examples](wireframe-patch-examples.png)
 

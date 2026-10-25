@@ -783,7 +783,180 @@ def styliser(corps, scene, groupes, chemin, secteur=(60.0, 255.0),
     return chemin
 
 
-def rendre_region(corps, offsets, scene, chemin, plancher=NOISE_FLOOR):
+def rendre_fil(corps, scene, chemin, epaisseur=0.0006):
+    """Une passe où seul le MAILLAGE du corps est rendu, blanc sur noir.
+
+    ⭐ Ce que la tache ne montre pas : une tache dit qu'une zone bouge, le fil
+    de fer montre COMMENT elle bouge, puisque ses mailles se déplacent avec la
+    surface. Posé sur les deux moitiés d'un diptyque, il rend la déformation
+    lisible là où deux rendus lisses se ressemblent.
+
+    Un modificateur Wireframe transforme les arêtes en géométrie, ce qui donne
+    une épaisseur constante en mètres, indépendante de la distance : la finesse
+    du trait se règle donc ici et non au cadrage.
+    """
+    memo_caches = [ob for ob in bpy.data.objects
+                   if ob is not corps and not ob.hide_render
+                   and ob.type not in {"CAMERA", "LIGHT"}]
+    for ob in memo_caches:
+        ob.hide_render = True
+
+    # ⚠⚠ Le corps doit RESTER PLEIN sous son fil. Avec `use_replace`, seule
+    # l'armature des arêtes subsiste : on voit alors au travers, toutes les
+    # couches du maillage se superposent, et de biais le fil se referme en
+    # aplat. Le corps est donc gardé, peint en noir, et le fil reçoit son
+    # propre matériau par `material_offset`, ce qui l'occulte correctement.
+    modif = corps.modifiers.new("FIL", "WIREFRAME")
+    modif.thickness = epaisseur
+    modif.use_replace = False
+    modif.use_even_offset = False
+    modif.material_offset = 1
+
+    fond = bpy.data.materials.new("FIL_FOND")
+    fond.use_nodes = True
+    a1 = fond.node_tree
+    a1.nodes.clear()
+    s1 = a1.nodes.new("ShaderNodeOutputMaterial")
+    e1 = a1.nodes.new("ShaderNodeEmission")
+    e1.inputs["Color"].default_value = (0.0, 0.0, 0.0, 1.0)
+    a1.links.new(e1.outputs["Emission"], s1.inputs["Surface"])
+
+    matiere = bpy.data.materials.new("FIL")
+    matiere.use_nodes = True
+    arbre = matiere.node_tree
+    arbre.nodes.clear()
+    sortie = arbre.nodes.new("ShaderNodeOutputMaterial")
+    emission = arbre.nodes.new("ShaderNodeEmission")
+    emission.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    arbre.links.new(emission.outputs["Emission"], sortie.inputs["Surface"])
+
+    maillage = corps.data
+    anciennes = [f.material_index for f in maillage.polygons]
+    matieres = list(maillage.materials)
+    maillage.materials.clear()
+    maillage.materials.append(fond)
+    maillage.materials.append(matiere)
+    for f in maillage.polygons:
+        f.material_index = 0
+
+    memo_echantillons = scene.cycles.samples
+    memo_monde = scene.world
+    scene.cycles.samples = 24
+    scene.world = None
+    scene.render.filepath = chemin
+    bpy.ops.render.render(write_still=True)
+
+    scene.cycles.samples = memo_echantillons
+    scene.world = memo_monde
+    maillage.materials.clear()
+    for m in matieres:
+        maillage.materials.append(m)
+    for f, indice in zip(maillage.polygons, anciennes):
+        f.material_index = indice
+    bpy.data.materials.remove(matiere)
+    bpy.data.materials.remove(fond)
+    corps.modifiers.remove(modif)
+    for ob in memo_caches:
+        ob.hide_render = False
+    print(f"FIL rendu epaisseur={epaisseur}")
+    return chemin
+
+
+def rendre_fil_xray(proxy, deplaces, scene, chemin, epaisseur=0.0006,
+                    coupe=None):
+    """Le fil de fer de la seule zone deplacee, SANS occultation (18-10-2026).
+
+    Pour les cibles « deep » (Vulva Deep, Anus_deep), qui creusent sous la
+    surface : la passe ordinaire `rendre_fil` occulte le fil par le corps
+    plein, donc l'interieur ne se voit pas. Ici un masque ne garde que les
+    sommets que la cible deplace, et le fil remplace la surface : on voit les
+    mailles internes au travers. La composition retire ensuite ce que la passe
+    ordinaire montre deja, pour colorer a part les seules mailles cachees.
+    """
+    memo_caches = [ob for ob in bpy.data.objects
+                   if ob is not proxy and not ob.hide_render
+                   and ob.type not in {"CAMERA", "LIGHT"}]
+    for ob in memo_caches:
+        ob.hide_render = True
+    # deplaces None : tout le proxy en fil, sans occultation (vue « fantome »).
+    groupe = masque = origine = None
+    if deplaces is None and coupe is not None:
+        # ⭐ 18-10-2026, vue « fantome » coupee : seule la moitie du corps
+        # tournee vers la camera, decoupee par le plan qui passe par la visee
+        # perpendiculairement au regard. De face on voit le ventre, de dos les
+        # fesses : sans elle, les deux vues transparentes se confondent.
+        # ⚠ Un masque par sommets coupait en ESCALIER (on garde ou jette des
+        # faces entieres). On coupe donc la geometrie elle-meme par le plan
+        # (bmesh.bisect_plane), sur une copie du maillage, restauree ensuite.
+        import bmesh
+        camera = scene.camera.matrix_world.translation
+        vers = (camera - coupe).normalized()
+        inverse = proxy.matrix_world.inverted()
+        bm = bmesh.new()
+        bm.from_mesh(proxy.data)
+        bmesh.ops.bisect_plane(
+            bm, geom=bm.verts[:] + bm.edges[:] + bm.faces[:],
+            plane_co=inverse @ coupe,
+            plane_no=(inverse.to_3x3() @ vers).normalized(),
+            clear_inner=True)
+        coupee = bpy.data.meshes.new("XRAY_COUPE")
+        bm.to_mesh(coupee)
+        bm.free()
+        origine = proxy.data
+        proxy.data = coupee
+    if deplaces is not None:
+        groupe = proxy.vertex_groups.new(name="XRAY")
+        groupe.add(sorted(deplaces), 1.0, "REPLACE")
+        masque = proxy.modifiers.new("XRAY_MASQUE", "MASK")
+        masque.vertex_group = "XRAY"
+    modif = proxy.modifiers.new("XRAY_FIL", "WIREFRAME")
+    modif.thickness = epaisseur
+    modif.use_replace = True
+    modif.use_even_offset = False
+    matiere = bpy.data.materials.new("XRAY")
+    matiere.use_nodes = True
+    arbre = matiere.node_tree
+    arbre.nodes.clear()
+    sortie = arbre.nodes.new("ShaderNodeOutputMaterial")
+    emission = arbre.nodes.new("ShaderNodeEmission")
+    emission.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    arbre.links.new(emission.outputs["Emission"], sortie.inputs["Surface"])
+    maillage = proxy.data
+    matieres = list(maillage.materials)
+    anciennes = [f.material_index for f in maillage.polygons]
+    maillage.materials.clear()
+    maillage.materials.append(matiere)
+    for f in maillage.polygons:
+        f.material_index = 0
+    memo_echantillons = scene.cycles.samples
+    memo_monde = scene.world
+    scene.cycles.samples = 24
+    scene.world = None
+    scene.render.filepath = chemin
+    bpy.ops.render.render(write_still=True)
+    scene.cycles.samples = memo_echantillons
+    scene.world = memo_monde
+    maillage.materials.clear()
+    for m in matieres:
+        maillage.materials.append(m)
+    for f, indice in zip(maillage.polygons, anciennes):
+        f.material_index = indice
+    bpy.data.materials.remove(matiere)
+    proxy.modifiers.remove(modif)
+    if masque:
+        proxy.modifiers.remove(masque)
+        proxy.vertex_groups.remove(groupe)
+    if origine is not None:
+        proxy.data = origine
+        bpy.data.meshes.remove(coupee)
+    for ob in memo_caches:
+        ob.hide_render = False
+    print(f"XRAY rendu sommets={len(deplaces) if deplaces else 'tous'}")
+    return chemin
+
+
+def rendre_region(corps, offsets, scene, chemin, plancher=NOISE_FLOOR,
+                  gradue=False):
     """Une passe où la zone que la cible déplace est blanche, le reste noir.
 
     ⭐ La troisième source de contour, et la seule qui marche sous n'importe
@@ -809,7 +982,17 @@ def rendre_region(corps, offsets, scene, chemin, plancher=NOISE_FLOOR):
         ecart = offsets.get(indice)
         dedans = (ecart is not None and plus_grand > 0.0
                   and ecart.length >= plus_grand * plancher)
-        v = 1.0 if dedans else 0.0
+        if not dedans:
+            v = 0.0
+        elif gradue:
+            # ⭐ Gradue, l'intensite suit le deplacement reel. Le binaire se lit
+            # comme un aplat de selection des que la zone est large : il dit
+            # "ces sommets bougent" sans dire lesquels bougent le plus, ce qui
+            # est precisement l'information anatomique. Ici la tache s'eteint
+            # sur ses bords et se concentre ou la cible agit vraiment.
+            v = ecart.length / plus_grand
+        else:
+            v = 1.0
         attribut.data[indice].color = (v, v, v, 1.0)
 
     matiere = bpy.data.materials.new("REGION")
@@ -834,9 +1017,23 @@ def rendre_region(corps, offsets, scene, chemin, plancher=NOISE_FLOOR):
     scene.cycles.samples = 16
     scene.world = None
 
+    # ⚠⚠ Le matériau d'émission ne remplace que celui du CORPS : les yeux, les
+    # cils, les dents et la langue sont des objets séparés, qui rendaient donc
+    # leur propre couleur sous les lampes du studio et entraient dans le
+    # masque. Mesuré le 16-09-2026 : sur `asym-ear-1`, une cible d'oreille, le
+    # masque valait 46 % à l'iris gauche et 15 % au droit, et la composition
+    # peignait les yeux en bleu. Un masque doit être noir partout sauf la zone.
+    memo_caches = [ob for ob in bpy.data.objects
+                   if ob is not corps and not ob.hide_render
+                   and ob.type not in {"CAMERA", "LIGHT"}]
+    for ob in memo_caches:
+        ob.hide_render = True
+
     scene.render.filepath = chemin
     bpy.ops.render.render(write_still=True)
 
+    for ob in memo_caches:
+        ob.hide_render = False
     scene.cycles.samples = memo_echantillons
     scene.world = memo_monde
     maillage.materials.clear()
@@ -899,6 +1096,71 @@ def preparer_scene(qui, echantillons, cote=0, rectangle=False,
     return scene
 
 
+def eclaircir_yeux(force):
+    """Éclaircir l'iris et la pupille, qui font un trou noir en gros plan.
+
+    ⚠ Le blanc de l'œil, lui, est déjà blanc : le matériau du studio est un
+    groupe `EnhancedEye` dont `EyeWhiteColor` vaut 1,0. Ce qui assombrit un
+    gros plan d'œil, ce sont `IrisMinorColor` et `PupilColor`, tous deux à
+    zéro, plus `IrisSection4Color`, presque noir. On les tire vers le blanc
+    d'une fraction, sans toucher au reste : l'œil reste un œil, il cesse
+    d'être un puits.
+    """
+    entrees = ("IrisMinorColor", "PupilColor", "IrisSection4Color",
+               "IrisMajorColor")
+    touches = 0
+    for matiere in bpy.data.materials:
+        if not matiere.use_nodes:
+            continue
+        for noeud in matiere.node_tree.nodes:
+            if noeud.type != "GROUP" or not noeud.node_tree:
+                continue
+            if "enhancedeye" not in noeud.node_tree.name.lower():
+                continue
+            for nom in entrees:
+                entree = noeud.inputs.get(nom)
+                if entree is None or entree.is_linked:
+                    continue
+                c = list(entree.default_value)
+                entree.default_value = [c[i] + (1.0 - c[i]) * force
+                                        for i in range(3)] + [c[3]]
+                touches += 1
+    print(f"YEUX eclaircis force={force} entrees={touches}")
+    return touches
+
+
+def activer_rig_miroir():
+    """Rendre les deux rigs de lampes, pour un eclairage symetrique gauche/droite.
+
+    ⚠⚠ Le studio contient deux rigs MIROIRS (`lights.r` et `lights.l`, key a
+    x=+1.424 contre -1.424, fill a -1.030 contre +1.030), mais `lights.l` est
+    **exclu du view layer** dans le fichier livre : un seul rig eclaire, donc
+    la lumiere est asymetrique gauche/droite. Sur une vignette d'ASYMETRIE
+    c'est un defaut de fond : l'ombre du trois-points imite ce que la cible est
+    censee montrer, et l'oeil ne peut plus attribuer l'ecart qu'il voit.
+
+    Activer le miroir rend le corps neutre symetrique a l'image, donc tout
+    ecart gauche/droite restant est geometrique. Le prix est un modele plus
+    plat, les deux cles se comblant mutuellement les ombres : arbitrage de
+    Raphael le 16-09-2026, la symetrie prime sur le volume pour cette famille.
+    """
+    def trouver(lc, nom):
+        if lc.name == nom:
+            return lc
+        for enfant in lc.children:
+            trouve = trouver(enfant, nom)
+            if trouve:
+                return trouve
+        return None
+    lc = trouver(bpy.context.view_layer.layer_collection, "lights.l")
+    if lc is None:
+        print("MIRROIR introuvable : collection lights.l absente")
+        return False
+    lc.exclude = False
+    print("MIROIR lights.l active")
+    return True
+
+
 def regler_eclairage(reglages, force_monde=None):
     """Chaque famille de lampes multipliée par son propre facteur.
 
@@ -942,6 +1204,29 @@ def regler_eclairage(reglages, force_monde=None):
                     n.inputs[1].default_value = force_monde
     print(f"LIGHTING {dict(reglages)} monde={force_monde} "
           f"lampes={dict(compte)}")
+
+
+def couper_moitie(corps, scene):
+    """Masquer la moitie du corps opposee a la camera (24-10-2026).
+
+    De profil, une levre montre aussi sa moitie lointaine, dont les mailles
+    se melent a celles du cote camera. Le maillage de base a une ligne de
+    sommets sur x = 0 : un masque par sommets, qui garde cette ligne, coupe
+    donc net au plan median, sans escalier. Le masque passe en tete de pile,
+    avant le fil de fer que `rendre_fil` ajoute ensuite.
+    """
+    if corps.modifiers.get("MOITIE"):
+        return
+    cote = 1.0 if scene.camera.matrix_world.translation.x >= 0.0 else -1.0
+    monde = corps.matrix_world
+    groupe = corps.vertex_groups.new(name="MOITIE")
+    garde = [v.index for v in corps.data.vertices
+             if (monde @ v.co).x * cote >= -1e-5]
+    groupe.add(garde, 1.0, "REPLACE")
+    masque = corps.modifiers.new("MOITIE", "MASK")
+    masque.vertex_group = "MOITIE"
+    corps.modifiers.move(len(corps.modifiers) - 1, 0)
+    print(f"HALF cote x {'+' if cote > 0 else '-'}, sommets gardes {len(garde)}")
 
 
 def poser_camera(scene, regard, distance, azimut, elevation=0.0,
@@ -1083,8 +1368,11 @@ def appliquer(corps, offsets, nom, valeur=1.0):
             continue
         position = cle.data[indice].co
         cle.data[indice].co = position + ecart
+    # The range must be set BEFORE the value: Blender clamps `value` to the
+    # current range as it is assigned. Leaving 1.0 here made every amplitude
+    # above the slider maximum fall silently back to 1.
+    cle.slider_min, cle.slider_max = 0.0, max(1.0, valeur)
     cle.value = valeur
-    cle.slider_min, cle.slider_max = 0.0, 1.0
     return cle, hors
 
 
@@ -1121,6 +1409,13 @@ def main():
                    help="masquer dents et langue. Elles ne servent jamais a "
                         "une vignette et leurs textures manquent sur le poste, "
                         "donc elles ne peuvent que fuir en magenta")
+    a.add_argument("--keep-above", default="", dest="garder",
+                   help="axe:seuil, ex. x:0.24 ; masque au rendu les sommets "
+                        "en deca (le tronc derriere une main)")
+    a.add_argument("--hide-eyes", action="store_true", dest="cacher_yeux",
+                   help="masquer les globes. Sans cle de forme, ils gardent "
+                        "leur taille quand une cible change l'orbite, et "
+                        "semblent sortir de la paupiere")
     a.add_argument("--ethnicity", default="", dest="ethnie",
                    choices=("", "asian", "caucasian", "african"),
                    help="pousser une morphologie a fond au lieu du melange a "
@@ -1160,6 +1455,13 @@ def main():
                    help="ouverture de la camera ; 0 coupe la profondeur de "
                         "champ. Le studio est a f/5,6 sur un 200 mm, ce qui "
                         "ne laisse que quelques millimetres de net en gros plan")
+    a.add_argument("--eye-lift", type=float, default=0.0, dest="yeux_clairs",
+                   help="eclaircir l'iris et la pupille vers le blanc, de 0 a "
+                        "1 ; en gros plan l'oeil sort autrement en trou noir")
+    a.add_argument("--mirror-lights", action="store_true", dest="miroir",
+                   help="rendre AUSSI le rig de lampes miroir, pour un "
+                        "eclairage symetrique gauche/droite ; le fichier "
+                        "livre exclut lights.l, donc un seul cote eclaire")
     a.add_argument("--lights", default="", dest="lampes",
                    help="facteurs par famille, par exemple "
                         "key=1.5,fill=0,rim=0,spot=0 ; ce qui n'est pas cite "
@@ -1198,6 +1500,22 @@ def main():
                         "doit atteindre pour compter")
     a.add_argument("--sector", default="60,255", dest="secteur",
                    help="secteur angulaire garde, en degres dans l'image")
+    a.add_argument("--region-graded", action="store_true", dest="region_graduee",
+                   help="avec --region, peindre l'intensite proportionnelle au "
+                        "deplacement plutot qu'un aplat binaire")
+    a.add_argument("--wire", action="store_true", dest="fil",
+                   help="rendre en plus une passe du maillage seul, blanc sur "
+                        "noir, pour montrer comment la zone se deforme")
+    a.add_argument("--wire-xray", action="store_true", dest="fil_xray",
+                   help="avec --fit et --wire, une passe de plus : le fil de la "
+                        "seule zone deplacee, sans occultation (cibles deep)")
+    a.add_argument("--wire-ghost-half", action="store_true", dest="fil_moitie",
+                   help="avec --wire-xray, le corps fantome reduit a la moitie "
+                        "tournee vers la camera")
+    a.add_argument("--wire-thickness", type=float, default=0.0006,
+                   dest="fil_epaisseur",
+                   help="epaisseur du fil en metres ; constante a l image "
+                        "quelle que soit la distance")
     a.add_argument("--region", action="store_true",
                    help="rendre en plus une passe ou la zone deplacee est "
                         "blanche, pour en tracer le contour")
@@ -1215,6 +1533,9 @@ def main():
                    help="focale en mm, au lieu du 200 mm du studio. "
                         "Indispensable sous 5 cm de cadre : la camera ne "
                         "peut pas approcher plus pres que MIN_DISTANCE")
+    a.add_argument("--half", action="store_true", dest="moitie_corps",
+                   help="ne garder du corps que la moitie tournee vers la "
+                        "camera, coupee au plan median (levres de profil)")
     a.add_argument("--limit", type=int, default=0,
                    help="stop after this many targets (0 = all)")
     a.add_argument("--after-only", action="store_true", dest="after_only")
@@ -1293,6 +1614,10 @@ def main():
                 appareil.data.dof.use_dof = False
             else:
                 appareil.data.dof.aperture_fstop = ouverture
+    if o.yeux_clairs > 0.0:
+        eclaircir_yeux(o.yeux_clairs)
+    if o.miroir:
+        activer_rig_miroir()
     if o.lampes or o.monde is not None:
         reglages = {}
         for morceau in o.lampes.split(",") if o.lampes else []:
@@ -1326,6 +1651,38 @@ def main():
             objet = bpy.data.objects.get(o.who + "." + suffixe)
             if objet is None:
                 continue
+            objet.hide_render = True
+            print("HIDE %s masque" % objet.name)
+    if o.garder:
+        # 18-10-2026 : la main vue a 60 degres se detache sur la hanche, qui
+        # gene la lecture. On cache au rendu les faces en deca du seuil, en
+        # coordonnees monde.
+        axe, _, seuil = o.garder.partition(":")
+        rang, seuil = "xyz".index(axe), float(seuil)
+        # ⚠ Pas de modificateur Mask : il change le nombre de sommets evalues,
+        # et la visee geo comme le pochoir, qui lisent les sommets par indice,
+        # tombent a cote (essai du 19-10, pochoir vide). Un materiau Holdout
+        # sur les faces en deca du seuil les rend transparentes sans toucher
+        # a la geometrie ; la passe du fil remet ses propres materiaux.
+        monde = corps.matrix_world
+        dedans = [all((monde @ corps.data.vertices[i].co)[rang] <= seuil
+                      for i in f.vertices) for f in corps.data.polygons]
+        trou = bpy.data.materials.new("GARDER_HOLDOUT")
+        trou.use_nodes = True
+        arbre = trou.node_tree
+        arbre.nodes.clear()
+        sortie = arbre.nodes.new("ShaderNodeOutputMaterial")
+        retenue = arbre.nodes.new("ShaderNodeHoldout")
+        arbre.links.new(retenue.outputs["Holdout"], sortie.inputs["Surface"])
+        corps.data.materials.append(trou)
+        rang_trou = len(corps.data.materials) - 1
+        for f, cache in zip(corps.data.polygons, dedans):
+            if cache:
+                f.material_index = rang_trou
+        print(f"KEEP {axe}>{seuil} : {sum(dedans)} faces en holdout")
+    if o.cacher_yeux:
+        objet = bpy.data.objects.get(o.who + ".eyes")
+        if objet is not None:
             objet.hide_render = True
             print("HIDE %s masque" % objet.name)
     if o.ethnie:
@@ -1425,6 +1782,8 @@ def main():
             print(f"LIFT visee remontee de {o.remontee} m")
         poser_camera(scene, regard, distance, azimut, o.elevation,
                      not o.un_seul_rig)
+        if o.moitie_corps:
+            couper_moitie(corps, scene)
         if not o.after_only:
             scene.render.filepath = os.path.join(o.out, nom + "-before.png")
             bpy.ops.render.render(write_still=True)
@@ -1440,11 +1799,48 @@ def main():
                 # ⚠ La clé de forme ne suffit pas, l'ajustement ne la voit
                 # pas : on cuit la cible dans les sommets, on ajuste, on rend,
                 # puis on restaure.
-                cle.value = 0.0
-                memo = cuire_cible(corps, offsets, montant)
+                # ⚠⚠ 18-10-2026 : PERIME pour le MPFB installe (5.2). Son
+                # fit_clothes_to_human lit une cle « from_mix », donc les cles
+                # de forme et PAS vertices.co : cuire la cible dans les sommets
+                # avec la cle a zero laissait le proxy NEUTRE dans les deux
+                # etats (Vulva_Short, 0,37 % de pixels differents). On garde
+                # donc la cle active et on ajuste directement.
+                deplaces = None
+                if o.fil_xray:
+                    # Les sommets du proxy que la cible deplace : ajuster une
+                    # fois a vide (cle a zero) et comparer. Le seuil est relatif,
+                    # donc le meme ensemble sort au neutre (0,0001) et a 1.
+                    cle.value = 0.0
+                    vide = ajuster_proxy(o.proxy, corps)
+                    neutre = [v.co.copy() for v in vide.data.vertices]
+                    bpy.data.objects.remove(vide, do_unlink=True)
+                    cle.value = montant
                 proxy = ajuster_proxy(o.proxy, corps)
+                if o.fil_xray:
+                    ecarts = [(v.co - n).length
+                              for v, n in zip(proxy.data.vertices, neutre)]
+                    haut = max(ecarts, default=0.0)
+                    deplaces = [i for i, e in enumerate(ecarts)
+                                if haut > 0.0 and e >= haut * 0.05]
             scene.render.filepath = os.path.join(o.out, nom + suffixe + ".png")
             bpy.ops.render.render(write_still=True)
+            # ⭐ 17-10-2026 : avec un proxy, le fil se tire du PROXY, avant son
+            # retrait. Sinon on dessinait le maillage du corps nu, restaure a
+            # son etat neutre, et non la surface qu'on vient de rendre (cibles
+            # de vulve, qui n'ont de sens que sur un proxy de sexe).
+            if proxy and o.fil:
+                rendre_fil(proxy, scene,
+                           os.path.join(o.out, nom + suffixe + "-fil.png"),
+                           epaisseur=o.fil_epaisseur)
+            if proxy and o.fil_xray:
+                rendre_fil_xray(proxy, None, scene,
+                                os.path.join(o.out, nom + suffixe + "-ghost.png"),
+                                epaisseur=o.fil_epaisseur,
+                                coupe=regard if o.fil_moitie else None)
+            if proxy and deplaces:
+                rendre_fil_xray(proxy, deplaces, scene,
+                                os.path.join(o.out, nom + suffixe + "-xray.png"),
+                                epaisseur=o.fil_epaisseur)
             if proxy:
                 bpy.data.objects.remove(proxy, do_unlink=True)
                 corps.hide_render = False
@@ -1456,10 +1852,15 @@ def main():
                                       nom + suffixe + "-stylise.json"),
                          tuple(float(v) for v in o.secteur.split(",")),
                          poids=o.poids)
+            if o.fil and not o.proxy:
+                rendre_fil(corps, scene,
+                           os.path.join(o.out, nom + suffixe + "-fil.png"),
+                           epaisseur=o.fil_epaisseur)
             if o.region and montant > 0.0:
                 rendre_region(corps, offsets, scene,
                               os.path.join(o.out,
-                                           nom + suffixe + "-region.png"))
+                                           nom + suffixe + "-region.png"),
+                              gradue=o.region_graduee)
             corps.shape_key_remove(cle)
 
         journal[nom] = {

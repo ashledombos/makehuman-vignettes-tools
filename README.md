@@ -20,12 +20,22 @@ vignettes de la famille poitrine, avec un README en anglais qui explique la
 logique des trois régimes et celle des deux dispositifs de cibles. Les six
 vignettes livrables sont dans `docs/planches/breast-targets/`.
 
+Les vignettes livrables, une par asset, chacune avec un README en anglais :
+
+| dossier | contenu |
+| --- | --- |
+| `docs/vignettes-cibles/` | 35 cibles communautaires (yeux, bouche, oreilles), tache fil de fer |
+| `docs/vignettes-mains-pieds/` | curseurs officiels des mains et des pieds |
+| `docs/vignettes-asym/` | les 31 curseurs `asym` |
+| `docs/vignettes-poitrine/` | la famille poitrine |
+| `docs/vignettes-proxies/` | les 29 proxies des deux paquets |
+
 ## Licence
 
 Code et documentation sous **AGPL-3.0-or-later** (`LICENSE`), la licence de
-MPFB2. Les vignettes de `docs/planches/` dérivent du maillage de base de
+MPFB2. Les vignettes de `docs/` dérivent du maillage de base de
 MakeHuman et des assets qu'elles illustrent, et suivent la licence de leur
-sujet, indiquée dans le README de ce dossier.
+sujet.
 
 ## Les deux recettes exécutables
 

@@ -1,0 +1,52 @@
+face02 elvs_droopy_eyelids_1 cadre 0.124 tache 16.6%
+face02 elvs_eye_bags1 cadre 0.126 tache 12.6%
+face02 elvs_eye_wrinkle_extension1 cadre 0.156 tache 9.6%
+face02 elvs_eyebrow_lift1 cadre 0.140 tache 22.5%
+face02 elvs_very_large_eyes1 cadre 0.151 tache 48.8%
+face02 jujube_eye_outer_corner_crease cadre 0.133 tache 2.7%
+face02 jujube_eyebag_smoothen cadre 0.130 tache 13.3%
+face02 jujube_eyeballs_grow cadre 0.140 tache 29.1%
+face02 jujube_eyeballs_shrink cadre 0.140 tache 27.1%
+face02 jujube_eyelid_skin_thinning cadre 0.126 tache 8.9%
+face02 jujube_eyes_in cadre 0.144 tache 29.4%
+face02 jujube_eyes_middle_droop cadre 0.098 tache 5.2%
+face02 jujube_eyes_out cadre 0.144 tache 29.8%
+face02 jujube_eyes_outer_droop cadre 0.113 tache 4.6%
+face02 jujube_realistic_eyelids cadre 0.118 tache 11.6%
+face02 jujube_thinner_eyelids cadre 0.275 tache 1.9%
+face02 pepo_fix_boy_eyes cadre 0.122 tache 0.0% DEBORDE
+face03 blindsaypatten_fully_close_mouth cadre 0.063 tache 4.8%
+face03 elvs_bee_stung_lips1 cadre 0.151 tache 26.3%
+face03 elvs_pointy_lips1 cadre 0.074 tache 40.9%
+face03 elvs_smoker_lips1 cadre 0.093 tache 18.5%
+face03 flower-angel_kawaii_lips cadre 0.071 tache 29.1%
+face03 flower-angel_mouth_middle_lip_perfect_scale cadre 0.035 tache 22.6%
+face03 grinsegold_angelinas_lips cadre 0.066 tache 19.4%
+face03 jujube_mouth_scale_increase_fixed cadre 0.091 tache 39.5%
+face03 jujube_mouth_trans_down_fixed cadre 0.184 tache 16.2%
+face03 jujube_mouth_trans_up_fixed cadre 0.184 tache 12.2%
+face03 mindfront_mouth_lips_thicker_inside cadre 0.050 tache 9.7%
+face03 spamrakuen_sr_anime_female_lips_01 cadre 0.069 tache 24.1%
+face03 titleknown_great_soft_jelly_thing_from_i_have_no_mouth_and_i_must_scream cadre 1.800 tache 0.4%
+face04 bigspider95_lizzard_ear cadre 0.224 tache 3.0%
+face04 culturalibre_ear_vertex_fix cadre 0.205 tache 0.1%
+face04 elvs_faunae_ears1 cadre 0.222 tache 0.8%
+ECHEC-SONDE face04 jaldmic_drooped_rabbit_ears
+face04 joepal_elf_ears cadre 0.221 tache 1.1%
+face04 jujube_ears_in cadre 0.233 tache 10.1%
+face04 jujube_flatten_ears_1 cadre 0.224 tache 1.8%
+face04 jujube_flatten_ears_2 cadre 0.225 tache 1.7%
+face04 marco_105_face_ear_trans cadre 0.232 tache 10.5%
+face04 titleknown_shrek_ears cadre 0.239 tache 6.0%
+breast03 blindsaypatten_fix_male_nipple cadre 0.214 tache 3.5%
+breast03 elvs_man_boobs1 cadre 0.444 tache 18.2%
+breast03 elvs_man_boobs2 cadre 0.455 tache 14.2%
+breast03 jujube_male_fixed_nipples cadre 1.800 tache 18.9%
+face01 jujube_super_pointy_jaw cadre 0.340 tache 17.2%
+ventre culturalibre_belly_eye cadre 0.189 tache 68.8%
+
+Les deux cibles de paupiere, reprises une par une (18-09) :
+jujube_eye_outer_corner_crease  rendu 1024 puis recadre 252x126 dans l image,
+                                tache = difference visible, bleu sur le seul
+                                etat ou l epaisseur existe
+jujube_eyes_outer_droop         idem, recadre 300x150
