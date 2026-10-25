@@ -956,7 +956,7 @@ def rendre_fil_xray(proxy, deplaces, scene, chemin, epaisseur=0.0006,
 
 
 def rendre_region(corps, offsets, scene, chemin, plancher=NOISE_FLOOR,
-                  gradue=False):
+                  gradue=False, deformation=False):
     """Une passe où la zone que la cible déplace est blanche, le reste noir.
 
     ⭐ La troisième source de contour, et la seule qui marche sous n'importe
@@ -977,6 +977,18 @@ def rendre_region(corps, offsets, scene, chemin, plancher=NOISE_FLOOR,
         maillage.color_attributes.remove(maillage.color_attributes[nom_attribut])
     attribut = maillage.color_attributes.new(
         name=nom_attribut, type="FLOAT_COLOR", domain="POINT")
+    if deformation and offsets:
+        # --region-strain : une translation d'ensemble (la main qui glisse)
+        # peindrait tout le bloc. On retire le deplacement median, et chaque
+        # sommet garde le plus petit de ses deux ecarts, a l'origine et au
+        # bloc : nul sur ce qui ne bouge pas comme sur ce qui glisse d'un
+        # bloc, maximal la ou la surface s'etire (le poignet).
+        vals = list(offsets.values())
+        med = vals[0].copy()
+        for k in range(3):
+            med[k] = sorted(v[k] for v in vals)[len(vals) // 2]
+        offsets = {i: (d if d.length <= (d - med).length else d - med)
+                   for i, d in offsets.items()}
     plus_grand = max((d.length for d in offsets.values()), default=0.0)
     for indice in range(len(maillage.vertices)):
         ecart = offsets.get(indice)
@@ -1503,6 +1515,10 @@ def main():
     a.add_argument("--region-graded", action="store_true", dest="region_graduee",
                    help="avec --region, peindre l'intensite proportionnelle au "
                         "deplacement plutot qu'un aplat binaire")
+    a.add_argument("--region-strain", action="store_true",
+                   dest="region_deformation",
+                   help="avec --region, ne peindre que ce qui se deforme, pas "
+                        "ce qui glisse d'un bloc (cibles trans)")
     a.add_argument("--wire", action="store_true", dest="fil",
                    help="rendre en plus une passe du maillage seul, blanc sur "
                         "noir, pour montrer comment la zone se deforme")
@@ -1860,7 +1876,8 @@ def main():
                 rendre_region(corps, offsets, scene,
                               os.path.join(o.out,
                                            nom + suffixe + "-region.png"),
-                              gradue=o.region_graduee)
+                              gradue=o.region_graduee,
+                              deformation=o.region_deformation)
             corps.shape_key_remove(cle)
 
         journal[nom] = {
