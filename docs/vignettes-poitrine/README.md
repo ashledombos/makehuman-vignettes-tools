@@ -1,7 +1,7 @@
 # Breast
 
-6 thumbnails for the breast sliders, the same Joel validated in September.
-The zone moved is painted in blue on both halves.
+6 thumbnails for the breast sliders, same views as the ones Joel validated in September.
+The mesh of the zone moved is drawn in blue on both halves; where it is dense, the lines merge into a blue patch.
 
 <table>
 <tr>
