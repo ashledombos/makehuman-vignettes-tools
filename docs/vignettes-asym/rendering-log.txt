@@ -20,7 +20,7 @@ asym-jaw-3 sonde=9.4% -> cadre 0.091 m = 27.9%
 asymm-breast-1 sonde=78.3%
 asym-mouth-1 sonde=53.7%
 asym-mouth-2 sonde=29.1%
-asymm-trunk-1 sonde=16.1%
+asymm-trunk-1 sonde=16.1% (--region-edge-strain)
 asym-nose-1 sonde=20.2%
 asym-nose-2 sonde=31.4%
 asym-nose-3 sonde=8.7% -> cadre 0.035 m = 25.9%
