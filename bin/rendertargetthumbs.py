@@ -956,7 +956,7 @@ def rendre_fil_xray(proxy, deplaces, scene, chemin, epaisseur=0.0006,
 
 
 def rendre_region(corps, offsets, scene, chemin, plancher=NOISE_FLOOR,
-                  gradue=False, deformation=False):
+                  gradue=False, deformation=False, arete=False):
     """Une passe où la zone que la cible déplace est blanche, le reste noir.
 
     ⭐ La troisième source de contour, et la seule qui marche sous n'importe
@@ -989,6 +989,25 @@ def rendre_region(corps, offsets, scene, chemin, plancher=NOISE_FLOOR,
             med[k] = sorted(v[k] for v in vals)[len(vals) // 2]
         offsets = {i: (d if d.length <= (d - med).length else d - med)
                    for i, d in offsets.items()}
+    if arete and offsets:
+        # --region-edge-strain (28-10-2026) : la mediane de --region-strain
+        # suppose UN bloc qui glisse. Une cible asym deplace deux bras en sens
+        # contraires, la mediane tombe a zero et tout reste peint. Ici chaque
+        # sommet prend le plus grand ecart de deplacement avec ses voisins :
+        # nul sur tout ce qui bouge d'un bloc, quel que soit le nombre de
+        # blocs, maximal la ou les mailles s'etirent les unes par rapport aux
+        # autres.
+        nul = mathutils.Vector((0.0, 0.0, 0.0))
+        local = {}
+        for e in maillage.edges:
+            i, j = e.vertices
+            if i not in offsets and j not in offsets:
+                continue
+            ecart = (offsets.get(i, nul) - offsets.get(j, nul)).length
+            for k in (i, j):
+                if ecart > local.get(k, -1.0):
+                    local[k] = ecart
+        offsets = {i: mathutils.Vector((v, 0.0, 0.0)) for i, v in local.items()}
     plus_grand = max((d.length for d in offsets.values()), default=0.0)
     for indice in range(len(maillage.vertices)):
         ecart = offsets.get(indice)
@@ -1519,6 +1538,11 @@ def main():
                    dest="region_deformation",
                    help="avec --region, ne peindre que ce qui se deforme, pas "
                         "ce qui glisse d'un bloc (cibles trans)")
+    a.add_argument("--region-edge-strain", action="store_true",
+                   dest="region_arete",
+                   help="avec --region, peindre l etirement entre sommets "
+                        "voisins : nul sur tout bloc qui glisse, meme a deux "
+                        "blocs (asym du tronc)")
     a.add_argument("--wire", action="store_true", dest="fil",
                    help="rendre en plus une passe du maillage seul, blanc sur "
                         "noir, pour montrer comment la zone se deforme")
@@ -1877,7 +1901,8 @@ def main():
                               os.path.join(o.out,
                                            nom + suffixe + "-region.png"),
                               gradue=o.region_graduee,
-                              deformation=o.region_deformation)
+                              deformation=o.region_deformation,
+                              arete=o.region_arete)
             corps.shape_key_remove(cle)
 
         journal[nom] = {

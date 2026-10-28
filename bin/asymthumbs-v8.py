@@ -144,7 +144,7 @@ def rendre(curseur, largeur, visee, dossier):
            f"--wire --wire-thickness {FIL * 0.00016 * largeur / 0.048:.6f} "
            f"--lights '{LUM}' --world 0.55 "
            f"--skin-tune 'colorMixIn=0.68,colorMixInStrength=0.7' "
-           f"--amounts {amplitude} --out {dossier}")
+           f"--amounts {amplitude} {os.environ.get('EXTRA', '')} --out {dossier}")
     sh(cmd)
     # Le corps porteur est l'image DEFORMEE, pas le neutre `-before`. Son nom
     # porte l'amplitude, sauf a 1.0 ou le moteur n'ajoute aucun suffixe.
