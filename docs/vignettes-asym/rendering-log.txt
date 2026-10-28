@@ -1,40 +1,31 @@
-asym-brown-1 sonde=38.7%
-asym-brown-2 sonde=16.3%
-asym-cheek-1 sonde=18.2%
-asym-cheek-2 sonde=18.8%
-asym-ear-1 sonde=2.9%
-asym-ear-2 sonde=1.8%
-asym-ear-3 sonde=1.7%
-asym-ear-4 sonde=1.2%
-asym-eye-1 sonde=54.4%
-asym-eye-2 sonde=54.4%
-asym-eye-3 sonde=5.2%
-asym-eye-4 sonde=6.1%
-asym-eye-5 sonde=6.9% -> cadre 0.101 m = 8.0%
-asym-eye-6 sonde=2.4% -> cadre 0.094 m = 3.2%
-asym-eye-7 sonde=2.9%
-asym-eye-8 sonde=3.3% -> cadre 0.059 m = 10.7%
-asym-jaw-1 sonde=7.7% -> cadre 0.156 m = 8.1%
-asym-jaw-2 sonde=4.0% -> cadre 0.156 m = 4.2%
-asym-jaw-3 sonde=9.6% -> cadre 0.091 m = 28.1%
-asym-mouth-1 sonde=54.1%
-asym-mouth-2 sonde=29.4%
-asym-nose-1 sonde=20.3%
-asym-nose-2 sonde=31.6%
-asym-nose-3 sonde=8.8% -> cadre 0.035 m = 26.0% (amplitude ramenee a x2)
-asym-nose-4 sonde=21.2%
-asym-temple-1 sonde=9.4%
-asym-temple-2 sonde=9.2%
-asym-top-1 sonde=23.8%
-asym-top-2 sonde=8.5%
-asymm-breast-1 sonde=79.8%
-asymm-trunk-1 sonde=16.6%
-
-Retouches apres relecture image par image (la planche de contact les masquait) :
-asym-ear-1..4  cadre elargi 0.16 -> 0.21, les oreilles touchaient les bords
-asymm-trunk-1  visee remontee z 1.088 -> 1.330, cadre 0.40 -> 0.52 : la tache est
-               aux epaules et sortait par le haut, le bas montrait un ventre
-               que la cible ne touche pas
-asym-brown-2   cadre 0.10 -> 0.13, z +0.008 : tache aux coins du front, coupee
-asym-eye-1, -2 amplitude x2 -> x1 : a x2 le globe traversait la paupiere
-asym-temple-1, -2  cadre 0.15 -> 0.19 : oreille coupee au bord, meme defaut que la famille ear
+asym-brown-1 sonde=38.5%
+asym-brown-2 sonde=16.2%
+asym-cheek-1 sonde=18.0%
+asym-cheek-2 sonde=18.6%
+asym-ear-1 sonde=2.7%
+asym-ear-2 sonde=1.5%
+asym-ear-3 sonde=1.6%
+asym-ear-4 sonde=1.1%
+asym-eye-1 sonde=54.2%
+asym-eye-2 sonde=54.2%
+asym-eye-3 sonde=5.0%
+asym-eye-4 sonde=6.0%
+asym-eye-5 sonde=6.6% -> cadre 0.102 m = 7.7%
+asym-eye-6 sonde=2.2% -> cadre 0.095 m = 3.0%
+asym-eye-7 sonde=2.8%
+asym-eye-8 sonde=3.1% -> cadre 0.059 m = 10.5%
+asym-jaw-1 sonde=7.4% -> cadre 0.156 m = 7.8%
+asym-jaw-2 sonde=3.7% -> cadre 0.157 m = 3.9%
+asym-jaw-3 sonde=9.4% -> cadre 0.091 m = 27.9%
+asymm-breast-1 sonde=78.3%
+asym-mouth-1 sonde=53.7%
+asym-mouth-2 sonde=29.1%
+asymm-trunk-1 sonde=16.1%
+asym-nose-1 sonde=20.2%
+asym-nose-2 sonde=31.4%
+asym-nose-3 sonde=8.7% -> cadre 0.035 m = 25.9%
+asym-nose-4 sonde=21.1%
+asym-temple-1 sonde=8.8%
+asym-temple-2 sonde=8.6%
+asym-top-1 sonde=23.4%
+asym-top-2 sonde=7.9%

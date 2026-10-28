@@ -1,7 +1,7 @@
 # Asymmetry
 
 31 thumbnails for the asym sliders.
-The face is shown at one end of the slider, the zone moved is painted in blue.
+The face is shown at one end of the slider, the mesh of the zone moved is drawn in blue.
 
 <table>
 <tr>
