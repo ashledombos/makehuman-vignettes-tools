@@ -1447,6 +1447,8 @@ def main():
                    help="masquer les globes. Sans cle de forme, ils gardent "
                         "leur taille quand une cible change l'orbite, et "
                         "semblent sortir de la paupiere")
+    a.add_argument("--hide-eyelashes", action="store_true", dest="cacher_cils",
+                   help="masquer les cils (avec --hide-eyes, cibles de paupiere)")
     a.add_argument("--ethnicity", default="", dest="ethnie",
                    choices=("", "asian", "caucasian", "african"),
                    help="pousser une morphologie a fond au lieu du melange a "
@@ -1725,6 +1727,13 @@ def main():
         if objet is not None:
             objet.hide_render = True
             print("HIDE %s masque" % objet.name)
+    if o.cacher_cils:
+        # 29-10-2026 : sans globes, les cils flottent devant l'orbite vide et
+        # brouillent le bord de la paupiere, qui est le sujet.
+        for objet in bpy.data.objects:
+            if "eyelash" in objet.name.lower():
+                objet.hide_render = True
+                print("HIDE %s masque" % objet.name)
     if o.ethnie:
         poser_ethnie(corps, o.ethnie)
     for socle in o.socles:

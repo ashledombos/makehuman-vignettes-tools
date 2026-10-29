@@ -6,14 +6,14 @@ asym-ear-1 sonde=2.7%
 asym-ear-2 sonde=1.5%
 asym-ear-3 sonde=1.6%
 asym-ear-4 sonde=1.1%
-asym-eye-1 sonde=54.2%
-asym-eye-2 sonde=54.2%
-asym-eye-3 sonde=5.0%
-asym-eye-4 sonde=6.0%
-asym-eye-5 sonde=6.6% -> cadre 0.102 m = 7.7%
-asym-eye-6 sonde=2.2% -> cadre 0.095 m = 3.0%
-asym-eye-7 sonde=2.8%
-asym-eye-8 sonde=3.1% -> cadre 0.059 m = 10.5%
+asym-eye-1 sonde=54.2% (--hide-eyes --hide-eyelashes)
+asym-eye-2 sonde=54.2% (--hide-eyes --hide-eyelashes)
+asym-eye-3 sonde=5.0% (--hide-eyes --hide-eyelashes)
+asym-eye-4 sonde=6.0% (--hide-eyes --hide-eyelashes)
+asym-eye-5 sonde=6.6% -> cadre 0.102 m = 7.7% (--hide-eyes --hide-eyelashes)
+asym-eye-6 sonde=2.2% -> cadre 0.095 m = 3.0% (--hide-eyes --hide-eyelashes)
+asym-eye-7 sonde=2.8% (--hide-eyes --hide-eyelashes)
+asym-eye-8 sonde=3.1% -> cadre 0.059 m = 10.5% (--hide-eyes --hide-eyelashes)
 asym-jaw-1 sonde=7.4% -> cadre 0.156 m = 7.8%
 asym-jaw-2 sonde=3.7% -> cadre 0.157 m = 3.9%
 asym-jaw-3 sonde=9.4% -> cadre 0.091 m = 27.9%
